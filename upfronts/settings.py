@@ -26,7 +26,7 @@ SECRET_KEY = '%(rnx7)(@ovg2k%ajxv&@s^ioy%%^f8li)9o!%lvon0tdgdk^3'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://upfronts.herokuapp.com/'
+    'upfronts.herokuapp.com'
 ]
 
 # Static files (CSS, JavaScript, Images)
