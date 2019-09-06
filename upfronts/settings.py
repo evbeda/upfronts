@@ -31,13 +31,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'app.apps.AppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'app',
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -53,19 +54,21 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'upfronts.urls'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
+{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'social_django.context_processors.backends',
+            'social_django.context_processors.login_redirect',
+            'django.contrib.messages.context_processors.messages',
+        ],
     },
+},
 ]
 
 WSGI_APPLICATION = 'upfronts.wsgi.application'
@@ -123,3 +126,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+SOCIAL_AUTH_EVENTBRITE_KEY = get_env_variable('SOCIAL_AUTH_EVENTBRITE_KEY')
+SOCIAL_AUTH_EVENTBRITE_SECRET = get_env_variable(
+    'SOCIAL_AUTH_EVENTBRITE_SECRET',
+)
