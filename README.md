@@ -1,3 +1,3 @@
 # upfronts
-[![Build Status](https://travis-ci.org/AgustinDavila-EB/todolist.svg?branch=master)](https://travis-ci.org/AgustinDavila-EB/todolist)
-[![Coverage Status](https://coveralls.io/repos/github/AgustinDavila-EB/todolist/badge.svg?branch=master)](https://coveralls.io/github/AgustinDavila-EB/todolist?branch=master)
+[![Build Status](https://travis-ci.org/evbeda/suppliers_management.svg?branch=master)](https://travis-ci.org/evbeda/suppliers_management)
+[![Coverage Status](https://coveralls.io/repos/github/evbeda/upfronts/badge.svg)](https://coveralls.io/github/evbeda/upfronts)
