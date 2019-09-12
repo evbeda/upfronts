@@ -9,9 +9,9 @@
 }
 
 .bg-image {
-  background-image: url('https://source.unsplash.com/WEQbe2jBg40/600x1200');
+  background-image: url(../img/mh3.png);
   background-size: cover;
-  background-position: center;
+  background-position: relative;
 }
 
 .login-heading {
@@ -23,6 +23,20 @@
   letter-spacing: 0.05rem;
   padding: 0.75rem 1rem;
   border-radius: 2rem;
+}
+
+.btn-loginEB {
+  font-size: 0.9rem;
+  letter-spacing: 0.05rem;
+  padding: 0.75rem 1rem;
+  border-radius: 2rem;
+  background-color: orange;
+  color: white;
+}
+
+.btn-loginEB:hover {
+  background-color: rgb(238, 156, 4);
+  color: white;
 }
 
 .form-label-group {
