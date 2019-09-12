@@ -9,7 +9,6 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'css\css.css' %}">
   <div class="container-fluid">
-    <a class="btn" href="{% url "social:begin" "eventbrite" %}">Eventbrite</a>
     <div class="row no-gutter">
       <div class="d-none d-md-flex col-md-4 col-lg-6 bg-image"></div>
       <div class="col-md-8 col-lg-6">
@@ -36,6 +35,7 @@
                   <button class="btn btn-lg btn-primary btn-block btn-login text-uppercase font-weight-bold mb-2" type="submit">Sign in</button>
                   <div class="text-center">
                     <a class="small" href="#">Forgot password?</a></div>
+                    <hr><a class="btn btn-loginEB btn-lg btn-block text-uppercase font-weight-bold mb-2" href="{% url "social:begin" "eventbrite" %}">Login with Eventbrite</a>
                 </form>
               </div>
             </div>
