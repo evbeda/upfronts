@@ -1,0 +1,3 @@
+[flake8]
+exclude=manage.py,venv,upfronts/settings.py,app/migrations
+max-line-length = 120
