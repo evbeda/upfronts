@@ -3,4 +3,4 @@ from django.views.generic import TemplateView
 
 
 class UpfrontsTableView(LoginRequiredMixin, TemplateView):
-    template_name = "upfronts_table.html"
+    template_name = "uf_table.html"
