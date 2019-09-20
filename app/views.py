@@ -1,7 +1,10 @@
+import csv
+import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django_filters import FilterSet, CharFilter, DateFilter
 from django_filters.views import FilterView
+from django.http import HttpResponse
 from django_tables2.views import SingleTableMixin
 
 from app.models import Upfront
@@ -35,3 +38,27 @@ class UpfrontsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     table_class = UpfrontTable
     template_name = "app/uf_table.html"
     filterset_class = UpfrontFilter
+
+
+def download_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    upfronts = Upfront.objects.all()
+    writer = csv.writer(response)
+    for upfront in upfronts:
+        writer.writerow([
+            upfront.is_recoup,
+            upfront.status,
+            upfront.organizer,
+            upfront.account_name,
+            upfront.email_organizer,
+            upfront.upfront_projection,
+            upfront.contract_signed_date,
+            upfront.maximum_payment_date,
+            upfront.payment_date,
+            upfront.recoup_amount,
+            upfront.gts,
+            upfront.gtf
+        ])
+    return response
