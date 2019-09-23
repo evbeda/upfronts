@@ -13,6 +13,7 @@ class Contract(models.Model):
 
 
 class Installment(models.Model):
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
     is_recoup = models.BooleanField()
     status = models.CharField(max_length=80, choices=STATUS)
     upfront_projection = models.DecimalField(max_digits=19, decimal_places=10)

@@ -6,6 +6,15 @@ from .models import Contract, Installment
 
 class ModelTest(TestCase):
 
+    def setUp(self):
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        self.contract=Contract(**contract_data)
+        self.contract.save()
+
     def test_create_valid_contract(self):
         contract_data = {
             'organizer_account_name': 'Planner Eventos',
@@ -40,6 +49,7 @@ class ModelTest(TestCase):
 
     def test_create_valid_installment(self):
         installment_data = {
+            'contract': self.contract,
             'is_recoup': False,
             'status': 'PENDING',
             'upfront_projection': 9000,
@@ -64,6 +74,7 @@ class ModelTest(TestCase):
             'gts': 10000,
         }
         expected_error_dict_messages={
+            'contract': ['This field cannot be null.'],
             'status': ['This field cannot be blank.'],
             'maximum_payment_date': ["'{}' value has an invalid date format. It must be in YYYY-MM-DD format.".format(INVALID_PAYMENT_DATE)],
             'recoup_amount': ["'{}' value must be a decimal number.".format(INVALID_RECOUP_AMOUNT)],
