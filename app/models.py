@@ -12,6 +12,16 @@ class Contract(models.Model):
     signed_date = models.DateField()
 
 
+class Installment(models.Model):
+    is_recoup = models.BooleanField()
+    status = models.CharField(max_length=80, choices=STATUS)
+    upfront_projection = models.DecimalField(max_digits=19, decimal_places=10)
+    maximum_payment_date = models.DateField()
+    payment_date = models.DateField()
+    recoup_amount = models.DecimalField(max_digits=19, decimal_places=10)
+    gtf = models.DecimalField(max_digits=19, decimal_places=10)
+    gts = models.DecimalField(max_digits=19, decimal_places=10)
+
 # class Upfront(models.Model):
 #     is_recoup = models.BooleanField()
 #     status = models.CharField(max_length=80, choices=STATUS)

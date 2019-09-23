@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import Client, TestCase
 from django.urls import reverse
-from .models import Contract
+from .models import Contract, Installment
 # from .views import UpfrontFilter
 
 class ModelTest(TestCase):
@@ -37,6 +37,43 @@ class ModelTest(TestCase):
             contract.full_clean()
 
         self.assertEqual(expected_error_dict_messages, cm.exception.message_dict)
+
+    def test_create_valid_installment(self):
+        installment_data = {
+            'is_recoup': False,
+            'status': 'PENDING',
+            'upfront_projection': 9000,
+            'maximum_payment_date':'2019-09-14',
+            'payment_date':'2019-09-10',
+            'recoup_amount': 14000,
+            'gtf': 3500,
+            'gts':10000,
+        }
+        installment = Installment(**installment_data)
+        installment.full_clean()
+
+    def test_create_invalid_installment(self):
+        INVALID_RECOUP_AMOUNT = '1234A'
+        INVALID_PAYMENT_DATE = '28 DE OCTUBRE'
+        installment_data = {
+            'is_recoup': False,
+            'upfront_projection': 9000,
+            'maximum_payment_date': INVALID_PAYMENT_DATE,
+            'payment_date': '2019-09-10',
+            'recoup_amount': INVALID_RECOUP_AMOUNT,
+            'gts': 10000,
+        }
+        expected_error_dict_messages={
+            'status': ['This field cannot be blank.'],
+            'maximum_payment_date': ["'{}' value has an invalid date format. It must be in YYYY-MM-DD format.".format(INVALID_PAYMENT_DATE)],
+            'recoup_amount': ["'{}' value must be a decimal number.".format(INVALID_RECOUP_AMOUNT)],
+            'gtf': ['This field cannot be null.'],
+        }
+        installment = Installment(**installment_data)
+        with self.assertRaises(ValidationError) as cm:
+            installment.full_clean()
+        self.assertEqual(expected_error_dict_messages, cm.exception.message_dict)
+
 #
 #
 # class RedirectTest(TestCase):
