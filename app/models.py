@@ -12,12 +12,12 @@ class Installment(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
     is_recoup = models.BooleanField()
     status = models.CharField(max_length=80, choices=STATUS)
-    upfront_projection = models.DecimalField(max_digits=19, decimal_places=10)
+    upfront_projection = models.DecimalField(max_digits=19, decimal_places=4)
     maximum_payment_date = models.DateField()
     payment_date = models.DateField()
-    recoup_amount = models.DecimalField(max_digits=19, decimal_places=10)
-    gtf = models.DecimalField(max_digits=19, decimal_places=10)
-    gts = models.DecimalField(max_digits=19, decimal_places=10)
+    recoup_amount = models.DecimalField(max_digits=19, decimal_places=4)
+    gtf = models.DecimalField(max_digits=19, decimal_places=4)
+    gts = models.DecimalField(max_digits=19, decimal_places=4)
 
 
 class InstallmentCondition(models.Model):
