@@ -1,19 +1,15 @@
 from django.core.exceptions import ValidationError
-from django.test import Client, TestCase
-from django.urls import reverse
-from .models import Contract, Installment
-# from .views import UpfrontFilter
+from django.test import TestCase
+from .models import Contract, Installment, InstallmentCondition
+from . import \
+    INVALID_SIGN_DATE,\
+    INVALID_PAYMENT_DATE,\
+    INVALID_RECOUP_AMOUNT,\
+    STATUS,\
+    INSTALLMENT_CONDITIONS
+
 
 class ModelTest(TestCase):
-
-    def setUp(self):
-        contract_data = {
-            'organizer_account_name': 'Planner Eventos',
-            'organizer_email': 'pepe@planner.com',
-            'signed_date': '2019-09-14',
-        }
-        self.contract=Contract(**contract_data)
-        self.contract.save()
 
     def test_create_valid_contract(self):
         contract_data = {
@@ -27,7 +23,6 @@ class ModelTest(TestCase):
         contract.full_clean()
 
     def test_create_invalid_contract(self):
-        INVALID_SIGN_DATE = '5678'
         contract_data = {
             'organizer_email': '1234',
             'signed_date': INVALID_SIGN_DATE,
@@ -35,10 +30,10 @@ class ModelTest(TestCase):
 
         expected_error_dict_messages = {
             'organizer_account_name': ['This field cannot be blank.'],
-             'organizer_email': ['Enter a valid email address.'],
-             'signed_date': [
-                 "'{}' value has an invalid date format. "
-                 "It must be in YYYY-MM-DD format.".format(INVALID_SIGN_DATE)]
+            'organizer_email': ['Enter a valid email address.'],
+            'signed_date': [
+                "'{}' value has an invalid date format. "
+                "It must be in YYYY-MM-DD format.".format(INVALID_SIGN_DATE)]
         }
 
         contract = Contract(**contract_data)
@@ -47,24 +42,34 @@ class ModelTest(TestCase):
 
         self.assertEqual(expected_error_dict_messages, cm.exception.message_dict)
 
+
+class InstallmentTest(TestCase):
+
+    def setUp(self):
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        self.contract = Contract(**contract_data)
+        self.contract.save()
+
     def test_create_valid_installment(self):
         installment_data = {
             'contract': self.contract,
             'is_recoup': False,
             'status': 'PENDING',
             'upfront_projection': 9000,
-            'maximum_payment_date':'2019-09-14',
-            'payment_date':'2019-09-10',
+            'maximum_payment_date': '2019-09-14',
+            'payment_date': '2019-09-10',
             'recoup_amount': 14000,
             'gtf': 3500,
-            'gts':10000,
+            'gts': 10000,
         }
         installment = Installment(**installment_data)
         installment.full_clean()
 
     def test_create_invalid_installment(self):
-        INVALID_RECOUP_AMOUNT = '1234A'
-        INVALID_PAYMENT_DATE = '28 DE OCTUBRE'
         installment_data = {
             'is_recoup': False,
             'upfront_projection': 9000,
@@ -73,10 +78,11 @@ class ModelTest(TestCase):
             'recoup_amount': INVALID_RECOUP_AMOUNT,
             'gts': 10000,
         }
-        expected_error_dict_messages={
+        expected_error_dict_messages = {
             'contract': ['This field cannot be null.'],
             'status': ['This field cannot be blank.'],
-            'maximum_payment_date': ["'{}' value has an invalid date format. It must be in YYYY-MM-DD format.".format(INVALID_PAYMENT_DATE)],
+            'maximum_payment_date': [
+                "'{}' value has an invalid date format. It must be in YYYY-MM-DD format.".format(INVALID_PAYMENT_DATE)],
             'recoup_amount': ["'{}' value must be a decimal number.".format(INVALID_RECOUP_AMOUNT)],
             'gtf': ['This field cannot be null.'],
         }
@@ -85,8 +91,78 @@ class ModelTest(TestCase):
             installment.full_clean()
         self.assertEqual(expected_error_dict_messages, cm.exception.message_dict)
 
-#
-#
+
+class InstallmentConditionTest(TestCase):
+
+    def setUp(self):
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract(**contract_data)
+        contract.save()
+        installment_data = {
+            'contract': contract,
+            'is_recoup': False,
+            'status': 'PENDING',
+            'upfront_projection': 9000,
+            'maximum_payment_date': '2019-09-14',
+            'payment_date': '2019-09-10',
+            'recoup_amount': 14000,
+            'gtf': 3500,
+            'gts': 10000,
+        }
+        self.installment = Installment(**installment_data)
+        self.installment.save()
+
+    def test_create_valid_installment_condition(self):
+        installment_condition_data = {
+            'condition_name': INSTALLMENT_CONDITIONS[1][0],
+            'installment': self.installment,
+            'done': False,
+        }
+        installment_condition = InstallmentCondition(**installment_condition_data)
+        installment_condition.full_clean()
+
+    def test_create_invalid_installment_condition(self):
+        installment_condition_data = {
+            'condition_name': 'INVALID CONDITION',
+            'installment': self.installment,
+            'done': False,
+        }
+        expected_response = {
+            'condition_name': ["Value 'INVALID CONDITION' is not a valid choice."],
+        }
+        installment_condition = InstallmentCondition(**installment_condition_data)
+        with self.assertRaises(ValidationError) as cm:
+            installment_condition.full_clean()
+        self.assertEqual(expected_response, cm.exception.message_dict)
+
+    def test_create_installment_condition_without_installment(self):
+        installment_condition_data = {
+            'condition_name': INSTALLMENT_CONDITIONS[1][0],
+            'done': False,
+        }
+        expected_response = {
+            'installment': ['This field cannot be null.'],
+        }
+        installment_condition = InstallmentCondition(**installment_condition_data)
+        with self.assertRaises(ValidationError) as cm:
+            installment_condition.full_clean()
+        self.assertEqual(expected_response, cm.exception.message_dict)
+
+
+    # def test_create_invalid_installment_condition(self):
+    #     installment_condition_data = {
+    #         'installment': self.installment,
+    #         'done': False,
+    #     }
+    #     installment_condition = InstallmentCondition(**installment_condition_data)
+    #     installment_condition.full_clean()
+
+
+# #
 # class RedirectTest(TestCase):
 #
 #     def test_redirect_to_login_when_login_is_required(self):

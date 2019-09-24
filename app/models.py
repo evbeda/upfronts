@@ -1,10 +1,6 @@
 from django.db import models
+from . import STATUS, INSTALLMENT_CONDITIONS
 
-
-STATUS = [
-    ('COMMITED/APPROVED', 'COMMITED/APPROVED'),
-    ('PENDING', 'PENDING'),
-]
 
 class Contract(models.Model):
     organizer_account_name = models.CharField(max_length=80)
@@ -22,6 +18,13 @@ class Installment(models.Model):
     recoup_amount = models.DecimalField(max_digits=19, decimal_places=10)
     gtf = models.DecimalField(max_digits=19, decimal_places=10)
     gts = models.DecimalField(max_digits=19, decimal_places=10)
+
+
+class InstallmentCondition(models.Model):
+    condition_name = models.CharField(max_length=80, choices=INSTALLMENT_CONDITIONS)
+    installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
+    done = models.BooleanField(default=False)
+
 
 # class Upfront(models.Model):
 #     is_recoup = models.BooleanField()
