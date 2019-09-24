@@ -58,7 +58,7 @@ class InstallmentTest(TestCase):
         installment_data = {
             'contract': self.contract,
             'is_recoup': False,
-            'status': 'PENDING',
+            'status': STATUS[1][0],
             'upfront_projection': 9000,
             'maximum_payment_date': '2019-09-14',
             'payment_date': '2019-09-10',
