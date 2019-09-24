@@ -165,13 +165,13 @@ class InstallmentConditionTest(TestCase):
     #     installment_condition.full_clean()
 
 
-#
-# class RedirectTest(TestCase):
-#
-#     def test_redirect_to_login_when_login_is_required(self):
-#         c = Client()
-#         response = c.get("/upfronts/")
-#         self.assertIn(reverse('login'), response.url)
+
+class RedirectTest(TestCase):
+
+    def test_redirect_to_login_when_login_is_required(self):
+        c = Client()
+        response = c.get(reverse('installments'))
+        self.assertIn(reverse('login'), response.url)
 
 
 class FilterTest(TestCase):
