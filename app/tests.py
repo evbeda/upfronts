@@ -1,6 +1,10 @@
 import csv
 import io
-from django.contrib.auth.models import User, AnonymousUser
+
+from django.contrib.auth.models import (
+    AnonymousUser,
+    User,
+)
 from django.core.exceptions import ValidationError
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
@@ -300,7 +304,6 @@ class TestCsv(TestCase):
             organizer_account_name='EDA',
             organizer_email='juan@eventbrite.com',
             signed_date='2019-04-04',
-
         )
         Installment.objects.create(
             contract=contract,
@@ -312,7 +315,6 @@ class TestCsv(TestCase):
             recoup_amount=55555,
             gtf=100000,
             gts=7000,
-
         )
         request = self.factory.get(reverse('download_csv'))
         request.user = AnonymousUser()
