@@ -1,7 +1,10 @@
+import csv
+import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django_filters import FilterSet, CharFilter, DateFilter
 from django_filters.views import FilterView
+from django.http import HttpResponse
 from django_tables2.views import SingleTableMixin
 
 from app.models import Installment
@@ -34,3 +37,28 @@ class InstallmentsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     table_class = InstallmentsTable
     template_name = "app/installment_table.html"
     filterset_class = InstallmentsFilter
+
+
+def download_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    installments = Installment.objects.all()
+    writer = csv.writer(response)
+    for installment in installments:
+        writer.writerow([
+            installment.is_recoup,
+            installment.status,
+            installment.contract.organizer_account_name,
+            installment.upfront_projection,
+            installment.contract.organizer_email,
+            installment.contract.signed_date,
+            installment.contract.signed_date,
+            installment.upfront_projection,
+            installment.maximum_payment_date,
+            installment.payment_date,
+            installment.recoup_amount,
+            installment.gts,
+            installment.gtf,
+        ])
+    return response
