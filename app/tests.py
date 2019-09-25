@@ -1,8 +1,9 @@
+from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ValidationError
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory
 from django.urls import reverse
 
-from app.views import InstallmentsFilter
+from app.views import InstallmentsFilter, InstallmentsTableView
 from .models import Contract, Installment, InstallmentCondition
 from . import \
     INVALID_SIGN_DATE,\
@@ -156,16 +157,6 @@ class InstallmentConditionTest(TestCase):
         self.assertEqual(expected_response, cm.exception.message_dict)
 
 
-    # def test_create_invalid_installment_condition(self):
-    #     installment_condition_data = {
-    #         'installment': self.installment,
-    #         'done': False,
-    #     }
-    #     installment_condition = InstallmentCondition(**installment_condition_data)
-    #     installment_condition.full_clean()
-
-
-
 class RedirectTest(TestCase):
 
     def test_redirect_to_login_when_login_is_required(self):
@@ -231,3 +222,41 @@ class FilterTest(TestCase):
         self.assertIn(ins1, result)
         self.assertIn(ins3, result)
         self.assertNotIn(ins2, result)
+
+
+class TableTest(TestCase):
+
+    def test_installment_table(self):
+        factory = RequestFactory()
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        installment_data = {
+            'contract': contract,
+            'is_recoup': False,
+            'status': 'PENDING',
+            'upfront_projection': 9000,
+            'maximum_payment_date': '2019-09-14',
+            'payment_date': '2019-09-10',
+            'recoup_amount': 14000,
+            'gtf': 3500,
+            'gts': 10000,
+        }
+        self.installment = Installment.objects.create(**installment_data)
+        installment_condition_data = {
+            'condition_name': INSTALLMENT_CONDITIONS[1][0],
+            'installment': self.installment,
+            'done': False,
+        }
+        self.installment_condition = InstallmentCondition.objects.create(**installment_condition_data)
+        request = factory.get('/installments/')
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = InstallmentsTableView.as_view()(request)
+        content = response.render().content
+        self.assertIn(bytes(contract_data['organizer_account_name'], encoding='utf-8'), content)
+
+
