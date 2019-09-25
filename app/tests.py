@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, RequestFactory
 from django.urls import reverse
@@ -258,5 +258,3 @@ class TableTest(TestCase):
         response = InstallmentsTableView.as_view()(request)
         content = response.render().content
         self.assertIn(bytes(contract_data['organizer_account_name'], encoding='utf-8'), content)
-
-
