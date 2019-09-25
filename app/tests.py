@@ -1,17 +1,17 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.test import TestCase, Client, RequestFactory
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from app.views import InstallmentsFilter, InstallmentsTableView
 from .models import Contract, Installment, InstallmentCondition
-from . import \
-    INVALID_SIGN_DATE,\
-    INVALID_PAYMENT_DATE,\
-    INVALID_RECOUP_AMOUNT,\
-    STATUS,\
-    INSTALLMENT_CONDITIONS
-
+from . import (
+    INVALID_SIGN_DATE,
+    INVALID_PAYMENT_DATE,
+    INVALID_RECOUP_AMOUNT,
+    INSTALLMENT_CONDITIONS,
+    STATUS,
+)
 
 class ModelTest(TestCase):
 
