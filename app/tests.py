@@ -257,6 +257,6 @@ class TableTest(TestCase):
             username='test', email='test@test.com', password='secret')
         response = InstallmentsTableView.as_view()(request)
         content = response.render().content
-        self.assertIn(bytes(contract_data['organizer_account_name'], encoding='utf-8'), contentI)
+        self.assertIn(bytes(contract_data['organizer_account_name'], encoding='utf-8'), content)
 
 
