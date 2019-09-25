@@ -7,58 +7,58 @@ from django_filters.views import FilterView
 from django.http import HttpResponse
 from django_tables2.views import SingleTableMixin
 
-from app.models import Upfront
-from .tables import UpfrontTable
+from app.models import Installment
+from .tables import InstallmentsTable
 
 
-class UpfrontFilter(FilterSet):
+class InstallmentsFilter(FilterSet):
 
     organizer_search = CharFilter(label='Organizer', method='search_organizer')
     signed_date_search = DateFilter(label='Contract signed date', method='search_signed_date')
 
     def search_organizer(self, qs, name, value):
         return qs.filter(
-            Q(organizer__icontains=value) |
-            Q(account_name__icontains=value) |
-            Q(email_organizer__icontains=value)
+            Q(contract__organizer_account_name__icontains=value) |
+            Q(contract__organizer_email__icontains=value)
         )
 
     def search_signed_date(self, qs, name, value):
         return qs.filter(
-            Q(contract_signed_date=value)
+            Q(contract__signed_date=value)
         )
 
     class Meta:
-        model = Upfront
+        model = Installment
         fields = ('organizer_search',)
 
 
-class UpfrontsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
-    queryset = Upfront.objects.all()
-    table_class = UpfrontTable
-    template_name = "app/uf_table.html"
-    filterset_class = UpfrontFilter
+class InstallmentsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
+    queryset = Installment.objects.all()
+    table_class = InstallmentsTable
+    template_name = "app/installment_table.html"
+    filterset_class = InstallmentsFilter
 
 
 def download_csv(request):
     response = HttpResponse(content_type='text/csv')
     filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
     response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-    upfronts = Upfront.objects.all()
+    installments = Installment.objects.all()
     writer = csv.writer(response)
-    for upfront in upfronts:
+    for installment in installments:
         writer.writerow([
-            upfront.is_recoup,
-            upfront.status,
-            upfront.organizer,
-            upfront.account_name,
-            upfront.email_organizer,
-            upfront.upfront_projection,
-            upfront.contract_signed_date,
-            upfront.maximum_payment_date,
-            upfront.payment_date,
-            upfront.recoup_amount,
-            upfront.gts,
-            upfront.gtf,
+            installment.is_recoup,
+            installment.status,
+            installment.contract.organizer_account_name,
+            installment.upfront_projection,
+            installment.email_organizer,
+            installment.signed_date,
+            installment.contract.signed_date,
+            installment.upfront_projection,
+            installment.maximum_payment_date,
+            installment.payment_date,
+            installment.recoup_amount,
+            installment.gts,
+            installment.gtf,
         ])
     return response

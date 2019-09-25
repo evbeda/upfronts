@@ -4,6 +4,6 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^upfronts/', views.UpfrontsTableView.as_view(), name='upfronts'),
-    url(r'^', RedirectView.as_view(url='/upfronts/'), name='redirect-url'),
+    url(r'^installments/', views.InstallmentsTableView.as_view(), name='installments'),
+    url(r'^', RedirectView.as_view(url='/installments/'), name='redirect-url'),
 ]
