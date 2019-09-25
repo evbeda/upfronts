@@ -1,14 +1,19 @@
 import csv
 import datetime
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django_filters import FilterSet, CharFilter, DateFilter
-from django_filters.views import FilterView
 from django.http import HttpResponse
+from django_filters import (
+    CharFilter,
+    DateFilter,
+    FilterSet,
+)
+from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from app.models import Installment
-from .tables import InstallmentsTable
+from app.tables import InstallmentsTable
 
 
 class InstallmentsFilter(FilterSet):
