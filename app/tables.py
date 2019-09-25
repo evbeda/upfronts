@@ -7,7 +7,7 @@ class UpfrontTable(tables.Table):
     class Meta:
         model = Upfront
         template_name = "django_tables2/bootstrap.html"
-        exclude = ('id', 'gtf', 'gts')
+        exclude = ('id',)
         # fields = ('is_recoup', 'status','organizer', )
 
     def render_upfront_projection(self, value):

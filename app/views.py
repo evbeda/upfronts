@@ -59,6 +59,6 @@ def download_csv(request):
             upfront.payment_date,
             upfront.recoup_amount,
             upfront.gts,
-            upfront.gtf
+            upfront.gtf,
         ])
     return response

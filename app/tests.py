@@ -84,6 +84,7 @@ class TestCsv(TestCase):
         request = self.factory.get(reverse('download_csv'))
         request.user = AnonymousUser()
         response = download_csv(request)
+
         self.assertEqual('text/csv', dict(response.items())['Content-Type'])
         self.assertIn('-upfronts.csv', dict(response.items())['Content-Disposition'])
 
