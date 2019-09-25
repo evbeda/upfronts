@@ -288,13 +288,13 @@ class TestCsv(TestCase):
             'status': 'COMMITED/APPROVED',
             'account_name': 'EDA',
             'email_organizer': 'juan@eventbrite.com',
-            'upfront_projection': '77777.0000000000',
+            'upfront_projection': '77777.0000',
             'contract_signed_date': '2019-04-04',
             'maximum_payment_date': '2019-05-30',
             'payment_date': '2019-05-05',
-            'recoup_amount': '55555.0000000000',
-            'gtf': '7000.0000000000',
-            'gts': '100000.0000000000',
+            'recoup_amount': '55555.0000',
+            'gtf': '7000.0000',
+            'gts': '100000.0000',
         }
         contract = Contract.objects.create(
             organizer_account_name='EDA',
