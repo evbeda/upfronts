@@ -1,5 +1,6 @@
 import django_tables2 as tables
-from .models import Installment
+
+from app.models import Installment
 
 
 class InstallmentsTable(tables.Table):
