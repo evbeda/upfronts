@@ -13,6 +13,7 @@ from . import (
     STATUS,
 )
 
+
 class ModelTest(TestCase):
 
     def test_create_valid_contract(self):

@@ -24,4 +24,3 @@ class InstallmentCondition(models.Model):
     condition_name = models.CharField(max_length=80, choices=INSTALLMENT_CONDITIONS)
     installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
     done = models.BooleanField(default=False)
-
