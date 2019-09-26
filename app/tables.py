@@ -29,7 +29,6 @@ class InstallmentsTable(tables.Table):
         return '${:0.2f}'.format(value)
 
     def render_edit(self, value):
-        # / installments / update / {} /
         return format_html(
             '<a href="{}"> Edit</a>'.format(reverse('installments-update', args=(value.id,)))
         )
