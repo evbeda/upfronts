@@ -1,5 +1,5 @@
 from django.db import models
-from . import STATUS, INSTALLMENT_CONDITIONS
+from . import INSTALLMENT_CONDITIONS, STATUS
 
 
 class Contract(models.Model):
@@ -7,6 +7,7 @@ class Contract(models.Model):
     organizer_email = models.EmailField()
     signed_date = models.DateField()
     event_id = models.CharField(max_length=80, null=True, blank=True)
+    user_id = models.CharField(max_length=80, null=True, blank=True)
 
 
 class Installment(models.Model):
@@ -19,6 +20,10 @@ class Installment(models.Model):
     recoup_amount = models.DecimalField(max_digits=19, decimal_places=4)
     gtf = models.DecimalField(max_digits=19, decimal_places=4)
     gts = models.DecimalField(max_digits=19, decimal_places=4)
+
+    @property
+    def edit(self):
+        return self.contract
 
 
 class InstallmentCondition(models.Model):

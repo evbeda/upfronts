@@ -6,7 +6,7 @@ from django_filters import FilterSet, CharFilter, DateFilter
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from app.models import Installment, Contract
+from app.models import Contract, Installment
 from .tables import InstallmentsTable
 
 
@@ -38,15 +38,15 @@ class InstallmentsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     filterset_class = InstallmentsFilter
 
 
-class InstallmentUpdate(SingleTableMixin):
+class InstallmentUpdate(UpdateView):
     template_name = "app/update_installment.html"
-    # model = Contract
-    # fields = ['event_id']
-    #
-    # def get_success_url(self):
-    #     return reverse_lazy('installments', kwargs={'event_id': self.kwargs['event_id']})
-    #
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context['pk'] = self.kwargs['pk']
-    #     return context
+    model = Contract
+    fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
+
+    def get_success_url(self):
+        return reverse_lazy('installments')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pk'] = self.kwargs['pk']
+        return context
