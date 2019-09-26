@@ -58,8 +58,8 @@ class InstallmentUpdate(UpdateView):
         context = super().get_context_data(**kwargs)
         context['pk'] = self.kwargs['pk']
         return context
-    
-    
+
+
 def download_csv(request):
     response = HttpResponse(content_type='text/csv')
     filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
