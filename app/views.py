@@ -1,10 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.urls import reverse_lazy
+from django.views.generic import UpdateView
 from django_filters import FilterSet, CharFilter, DateFilter
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from app.models import Installment
+from app.models import Installment, Contract
 from .tables import InstallmentsTable
 
 
@@ -34,3 +36,17 @@ class InstallmentsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     table_class = InstallmentsTable
     template_name = "app/installment_table.html"
     filterset_class = InstallmentsFilter
+
+
+class InstallmentUpdate(SingleTableMixin):
+    template_name = "app/update_installment.html"
+    # model = Contract
+    # fields = ['event_id']
+    #
+    # def get_success_url(self):
+    #     return reverse_lazy('installments', kwargs={'event_id': self.kwargs['event_id']})
+    #
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['pk'] = self.kwargs['pk']
+    #     return context

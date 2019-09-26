@@ -6,6 +6,7 @@ class Contract(models.Model):
     organizer_account_name = models.CharField(max_length=80)
     organizer_email = models.EmailField()
     signed_date = models.DateField()
+    event_id = models.CharField(max_length=80, null=True, blank=True)
 
 
 class Installment(models.Model):
