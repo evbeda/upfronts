@@ -1,5 +1,6 @@
 import csv
 import io
+from unittest.mock import patch
 
 from django.contrib.auth.models import (
     AnonymousUser,
@@ -9,8 +10,6 @@ from django.core.exceptions import ValidationError
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
-from app.views import InstallmentsFilter, InstallmentsTableView, download_csv
-from .models import Contract, Installment, InstallmentCondition
 from . import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
@@ -18,6 +17,9 @@ from . import (
     INSTALLMENT_CONDITIONS,
     STATUS,
 )
+from .models import Contract, Installment, InstallmentCondition
+from .utils import sf_login
+from app.views import InstallmentsFilter, InstallmentsTableView, download_csv
 
 
 class ModelTest(TestCase):
@@ -325,3 +327,13 @@ class TestCsv(TestCase):
             csv_set = set(row)
         expected_csv_set = set(list(expected_upfront_dict.values()))
         self.assertEqual(csv_set, expected_csv_set)
+
+
+class FetchCaseTests(TestCase):
+
+    @patch('requests.post')
+    def test_sf_login(self, mock_post):
+        FAKE_TOKEN = "FAKE_TOKEN"
+        mock_post.return_value.json.return_value = {"access_token": FAKE_TOKEN}
+        token = sf_login()
+        self.assertEqual(token, FAKE_TOKEN)
