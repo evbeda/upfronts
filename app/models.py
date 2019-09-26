@@ -1,5 +1,9 @@
 from django.db import models
-from . import INSTALLMENT_CONDITIONS, STATUS
+
+from . import (
+    INSTALLMENT_CONDITIONS,
+    STATUS,
+)
 
 
 class Contract(models.Model):
