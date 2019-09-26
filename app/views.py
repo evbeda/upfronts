@@ -5,7 +5,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.forms import DateInput
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import UpdateView
 from django_filters import (
     CharFilter,
@@ -13,11 +16,21 @@ from django_filters import (
     FilterSet,
 )
 from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
+from django_tables2.views import (
+    SingleTableMixin,
+)
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 
 from app.models import Contract, Installment
 from app.tables import (
     ContractsTable,
+    FetchSalesForceCasesTable,
+)
+from app.utils import (
+    fetch_cases,
+    get_case_by_id,
+    get_contract_by_id,
 )
 
 
@@ -89,3 +102,38 @@ def download_csv(request):
             installment.gtf,
         ])
     return response
+
+
+class ContractAdd(TemplateView):
+
+    template_name = "app/add_contracts.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        case_numbers = self.request.GET.get('case_numbers') or self.kwargs.get('case_numbers')
+        if case_numbers:
+            contract_data = fetch_cases(case_numbers)
+            for elem in contract_data:
+                elem['save'] = elem['case_id']
+            context["table"] = FetchSalesForceCasesTable(contract_data)
+        return context
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SaveCaseView(View):
+
+    def post(self, request, *args, **kwargs):
+        case_id = self.kwargs['contract_id']
+        case_data = get_case_by_id(case_id)
+        contract_id = case_data['Contract__c']
+        contract_data = get_contract_by_id(contract_id)
+        Contract.objects.create(
+            organizer_account_name=contract_data['Hoopla_Account_Name__c'],
+            organizer_email=contract_data['Eventbrite_Username__c'],
+            signed_date=contract_data['ActivatedDate'].split("T")[0],
+            description=case_data['Description'],
+            case_number=case_data['CaseNumber'],
+            salesforce_id=contract_id,
+            salesforce_case_id=case_id,
+        )
+        return redirect('contracts')

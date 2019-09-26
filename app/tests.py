@@ -23,9 +23,11 @@ from . import (
     STATUS,
 )
 from app.views import (
-    download_csv,
+    ContractAdd,
     ContractsFilter,
     ContractsTableView,
+    download_csv,
+    SaveCaseView,
 )
 from app.models import (
     Contract,
@@ -42,6 +44,10 @@ class ModelTest(TestCase):
             'organizer_account_name': 'Planner Eventos',
             'organizer_email': 'pepe@planner.com',
             'signed_date': '2019-09-14',
+            'description': 'some description',
+            'case_number': '345978',
+            'salesforce_id': '23465789',
+            'salesforce_case_id': '4680990',
         }
         contract = Contract(**contract_data)
         contract.full_clean()
@@ -52,6 +58,10 @@ class ModelTest(TestCase):
         contract_data = {
             'organizer_email': '1234',
             'signed_date': INVALID_SIGN_DATE,
+            'description': 'some description',
+            'case_number': '345978',
+            'salesforce_id': '23465789',
+            'salesforce_case_id': '4680990',
         }
 
         expected_error_dict_messages = {
@@ -364,3 +374,65 @@ class FetchCaseTests(TestCase):
             result = fetch_cases(','.join(case_numbers))
         for elem in result:
             self.assertIn(elem['case_number'], case_numbers)
+
+
+class AddContractTests(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_get_add_contract_view(self):
+        FAKE_CASE_NUMBERS = ['1234', '5678']
+        kwargs = {
+            'case_numbers': ','.join(FAKE_CASE_NUMBERS),
+        }
+        request = self.factory.get(reverse('contracts-add'), kwargs=kwargs)
+        FAKE_FETCH_DATA = [
+            {
+                'case_number': FAKE_CASE_NUMBERS[0],
+                'case_id': 'FAKE_CASE_ID_1',
+                'contract_id': 'FAKE_CASE_CONTRACT_ID_1',
+                'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_1',
+                'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_1',
+                'signed_date': 'FAKE_CASE_SIGNED_DATE_1',
+            },
+            {
+                'case_number': FAKE_CASE_NUMBERS[1],
+                'case_id': 'FAKE_CASE_NUMBER_2',
+                'contract_id': 'FAKE_CASE_CONTRACT_ID_2',
+                'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_2',
+                'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_2',
+                'signed_date': 'FAKE_CASE_SIGNED_DATE_2',
+            },
+        ]
+        with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
+            response = ContractAdd.as_view()(request, **kwargs)
+        self.assertEqual(response.status_code, 200)
+        for elem in FAKE_FETCH_DATA:
+            for key, value in elem.items():
+                self.assertIn(bytes(value, encoding='utf-8'), response.render().content)
+
+    def test_save_case(self):
+        FAKE_CASE_ID = 'FAKE_CASE_ID'
+        FAKE_CONTRACT_ID = 'FAKE_CONTRACT_ID'
+        kwargs = {'contract_id': FAKE_CONTRACT_ID}
+        request = self.factory.post(reverse('contracts-save', args=(FAKE_CONTRACT_ID,)), data={'case_id': FAKE_CASE_ID})
+        FAKE_CASE_RETURN = {
+            'Id': FAKE_CASE_ID,
+            'CaseNumber': "FAKE_CASE_NUMBER",
+            'Description': "FAKE_CASE_DESCRIPTION",
+            'Contract__c': FAKE_CONTRACT_ID,
+        }
+        FAKE_CONTRACT_RETURN = {
+            'Hoopla_Account_Name__c': 'FAKE_ORGANIZER_NAME',
+            'Eventbrite_Username__c': 'FAKE_ORGANIZER_EMAIL',
+            'ActivatedDate': '2019-10-10',
+        }
+
+        with patch('app.views.get_case_by_id', return_value=FAKE_CASE_RETURN), \
+                patch('app.views.get_contract_by_id', return_value=FAKE_CONTRACT_RETURN):
+            response = SaveCaseView.as_view()(request, **kwargs)
+
+        self.assertEqual(response.status_code, 302)
+        contract = Contract.objects.first()
+        self.assertEqual(contract.case_number, FAKE_CASE_RETURN['CaseNumber'])
