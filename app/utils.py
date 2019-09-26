@@ -16,6 +16,7 @@ def fetch_cases(comma_separated_case_numbers):
 
     contract_ids = [c['Contract__c'] for c in cases]
     contract_ids_querystring = ','.join(repr(str(id)) for id in contract_ids)
+
     contracts = sf.query(
         'SELECT Eventbrite_Username__c, Hoopla_Account_Name__c, ActivatedDate from Contract WHERE id IN ({})'
         .format(contract_ids_querystring))['records']
@@ -27,8 +28,20 @@ def fetch_cases(comma_separated_case_numbers):
             'case_number': case['CaseNumber'],
             'contract_id': case['Contract__c'],
             'description': case['Description'],
-            'eventbrite_username': contract['Eventbrite_Username__c'],
+            'organizer_email': contract['Eventbrite_Username__c'],
             'organizer_name': contract['Hoopla_Account_Name__c'],
             'signed_date': contract['ActivatedDate'],
         })
     return result
+
+
+def get_case_by_id(case_id):
+    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain='test')
+    case = sf.Case.get(case_id)
+    return case
+
+
+def get_contract_by_id(contract_id):
+    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain='test')
+    contract = sf.Contract.get(contract_id)
+    return contract
