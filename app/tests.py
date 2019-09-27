@@ -279,6 +279,22 @@ class TableTest(TestCase):
         self.assertIn(bytes(contract_data['organizer_account_name'], encoding='utf-8'), content)
 
 
+class UpdateContractTest(TestCase):
+
+    def test_update_contract(self):
+        factory = RequestFactory()
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        contract_data['event_id'] = '234523'
+        request = factory.post(
+            reverse('installments-update', args=[contract.id]), contract_data, content_type='application/json')
+        self.assertIn(bytes(contract_data['event_id'], encoding='utf-8'), request.body)
+
+
 class TestCsv(TestCase):
 
     def setUp(self):
