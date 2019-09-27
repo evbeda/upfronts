@@ -1,0 +1,19 @@
+[run]
+source =
+    upfronts
+    app
+
+omit =
+    venv/*
+    env/*
+    */test*
+    settings/*
+    */migrations*
+    */apps.py
+    */wsgi.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def setUp
+    def test_
