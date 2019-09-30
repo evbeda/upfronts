@@ -50,14 +50,7 @@ class InstallmentUpdate(UpdateView):
     template_name = "app/update_installment.html"
     model = Contract
     fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
-
-    def get_success_url(self):
-        return reverse_lazy('installments')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['pk'] = self.kwargs['pk']
-        return context
+    success_url = reverse_lazy('installments')
 
 
 def download_csv(request):

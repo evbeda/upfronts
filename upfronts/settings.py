@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django_tables2',
     'django_filters',
     'social_django',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
