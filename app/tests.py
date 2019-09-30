@@ -74,8 +74,7 @@ class InstallmentTest(TestCase):
             'organizer_email': 'pepe@planner.com',
             'signed_date': '2019-09-14',
         }
-        self.contract = Contract(**contract_data)
-        self.contract.save()
+        self.contract = Contract.objects.create(**contract_data)
 
     def test_create_valid_installment(self):
         installment_data = {
@@ -295,7 +294,7 @@ class UpdateContractTest(TestCase):
         self.assertIn(bytes(contract_data['event_id'], encoding='utf-8'), request.body)
 
 
-class TestCsv(TestCase):
+class TestDownloadCsv(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()

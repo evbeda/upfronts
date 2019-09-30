@@ -27,7 +27,7 @@ class Installment(models.Model):
 
     @property
     def edit(self):
-        return self.contract
+        return self
 
 
 class InstallmentCondition(models.Model):
