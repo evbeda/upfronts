@@ -30,7 +30,7 @@ class InstallmentsTable(tables.Table):
 
     def render_edit(self, value):
         return format_html(
-            '<a href="{}"> Edit</a>'.format(reverse('installments-update', args=(value.contract_id,)))
+            '<a href="{}"><i class="far fa-edit"></i></a>'.format(reverse('installments-update', args=(value.id,)))
         )
 
     def render_recoup_amount(self, value):
