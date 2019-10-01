@@ -13,6 +13,7 @@ defusedxml==0.6.0
 dj-database-url==0.5.0
 Django==1.11.24
 django-bootstrap4==1.0.1
+django-extensions==2.2.1
 django-filter==2.2.0
 django-tables2==2.1.0
 docopt==0.6.2
@@ -20,7 +21,6 @@ entrypoints==0.3
 flake8==3.7.8
 gunicorn==19.9.0
 idna==2.8
-ipdb==0.12.2
 ipython==7.8.0
 ipython-genutils==0.2.0
 jedi==0.15.1
@@ -45,7 +45,6 @@ pyOpenSSL==19.0.0
 python-coveralls==2.9.3
 python3-openid==3.1.0
 pytz==2019.2
-PyYAML==5.1.2
 requests==2.22.0
 requests-oauthlib==1.2.0
 simple-salesforce==0.74.3
@@ -57,3 +56,4 @@ soupsieve==1.9.3
 traitlets==4.3.2
 urllib3==1.25.3
 wcwidth==0.1.7
+whitenoise==4.1.3

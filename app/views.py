@@ -1,14 +1,21 @@
 import csv
 import datetime
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django_filters import FilterSet, CharFilter, DateFilter
-from django_filters.views import FilterView
 from django.http import HttpResponse
+from django.urls import reverse_lazy
+from django.views.generic import UpdateView
+from django_filters import (
+    CharFilter,
+    DateFilter,
+    FilterSet,
+)
+from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from app.models import Installment
-from .tables import InstallmentsTable
+from app.models import Contract, Installment
+from app.tables import InstallmentsTable
 
 
 class InstallmentsFilter(FilterSet):
@@ -37,6 +44,13 @@ class InstallmentsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     table_class = InstallmentsTable
     template_name = "app/installment_table.html"
     filterset_class = InstallmentsFilter
+
+
+class InstallmentUpdate(UpdateView):
+    template_name = "app/update_installment.html"
+    model = Contract
+    fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
+    success_url = reverse_lazy('installments')
 
 
 def download_csv(request):

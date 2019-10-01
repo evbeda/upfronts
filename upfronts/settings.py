@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import dj_database_url
+
 from . import get_env_variable
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -38,6 +39,7 @@ PROJECT_ROOT = os.path.join(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_URL = '/accounts/login/'
 # Extra lookup directories for collectstatic to find static files
 STATICFILES_DIRS = (
@@ -57,6 +59,7 @@ INSTALLED_APPS = [
     'django_tables2',
     'django_filters',
     'social_django',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

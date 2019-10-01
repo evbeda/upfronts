@@ -7,7 +7,11 @@ from django.contrib.auth.models import (
     User,
 )
 from django.core.exceptions import ValidationError
-from django.test import Client, RequestFactory, TestCase
+from django.test import (
+    Client,
+    RequestFactory,
+    TestCase,
+)
 from django.urls import reverse
 from simple_salesforce import Salesforce
 
@@ -18,9 +22,13 @@ from . import (
     INSTALLMENT_CONDITIONS,
     STATUS,
 )
-from .models import Contract, Installment, InstallmentCondition
+from .models import (
+    Contract,
+    Installment,
+    InstallmentCondition,
+)
 from .utils import fetch_cases
-from app.views import (
+from .views import (
     download_csv,
     InstallmentsFilter,
     InstallmentsTableView,
@@ -69,8 +77,7 @@ class InstallmentTest(TestCase):
             'organizer_email': 'pepe@planner.com',
             'signed_date': '2019-09-14',
         }
-        self.contract = Contract(**contract_data)
-        self.contract.save()
+        self.contract = Contract.objects.create(**contract_data)
 
     def test_create_valid_installment(self):
         installment_data = {
@@ -274,7 +281,23 @@ class TableTest(TestCase):
         self.assertIn(bytes(contract_data['organizer_account_name'], encoding='utf-8'), content)
 
 
-class TestCsv(TestCase):
+class UpdateContractTest(TestCase):
+
+    def test_update_contract(self):
+        factory = RequestFactory()
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        contract_data['event_id'] = '234523'
+        request = factory.post(
+            reverse('installments-update', args=[contract.id]), contract_data, content_type='application/json')
+        self.assertIn(bytes(contract_data['event_id'], encoding='utf-8'), request.body)
+
+
+class TestDownloadCsv(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -369,7 +392,7 @@ class FetchCaseTests(TestCase):
             },
         )
         case_numbers = ['FAKE_CASE_NUMBER_1', 'FAKE_CASE_NUMBER_2']
-        with patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES) as mock_query:
+        with patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
             result = fetch_cases(','.join(case_numbers))
         for elem in result:
             self.assertIn(elem['case_number'], case_numbers)

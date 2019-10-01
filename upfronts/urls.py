@@ -1,6 +1,13 @@
-from django.conf.urls import url, include
+from django.conf.urls import (
+    include,
+    url,
+)
 from django.contrib import admin
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView,
+)
+
 from app import views
 
 urlpatterns = [
