@@ -392,7 +392,8 @@ class FetchCaseTests(TestCase):
             },
         )
         case_numbers = ['FAKE_CASE_NUMBER_1', 'FAKE_CASE_NUMBER_2']
-        with patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
+        with patch.object(Salesforce, '__init__', return_value=None), \
+                patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
             result = fetch_cases(','.join(case_numbers))
         for elem in result:
             self.assertIn(elem['case_number'], case_numbers)

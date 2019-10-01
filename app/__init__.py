@@ -1,4 +1,3 @@
-import os
 from upfronts import get_env_variable
 
 
