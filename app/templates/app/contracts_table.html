@@ -5,34 +5,34 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load render_table from django_tables2 %}
-{% block title %} Upfronts {% endblock title %}
+{% block title %} Contracts {% endblock title %}
 {% block content %}
 <html>
     <head>
-        <link rel="stylesheet" href="../../static/css/installment_table.css">
+        <link rel="stylesheet" href="../../static/css/contract_table.css">
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.0/css/all.css">
+        <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-        <title>Table</title>
-
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     </head>
     <body>
         <div class='p-3'>
             <div>
                 <div class="m-2">
-                    <h1>Cases</h1>
+                    <h1>Contracts</h1>
                 </div>
                 <div class="float-right">               
                     <button type="button" class="btn btn-primary"><i class="fas fa-sync"></i></button>
                 </div>
                 {% if filter %}
-                    
                     <form action="" method="get" class="form form-inline">
-                {% bootstrap_form filter.form layout='inline' %}
-                {% bootstrap_button '<i class="fab fa-sistrix"></i>' %}
-                </form>
+                        {% bootstrap_form filter.form layout='inline' %}
+                        {% bootstrap_button '<i class="fab fa-sistrix"></i>' %}
+                    </form>
                 {% endif %}
             </div>
             <div>
@@ -53,6 +53,11 @@
                 </div>
             </div>
         </div>
+        <script>
+        $( function() {
+            $( "#datepicker" ).datepicker();
+        } );
+        </script> 
     </body>
 </html>
 {% endblock content %}

@@ -23,8 +23,7 @@ body {
 }
 
 th {
-  background-color: rgb(131, 212, 236);
-  color: white;
+  text-align: center!important;
 }
 
 th a {
