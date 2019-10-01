@@ -9,6 +9,7 @@ from django.contrib.auth.models import (
 from django.core.exceptions import ValidationError
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from simple_salesforce import Salesforce
 
 from . import (
     INVALID_SIGN_DATE,
@@ -18,8 +19,12 @@ from . import (
     STATUS,
 )
 from .models import Contract, Installment, InstallmentCondition
-from .utils import sf_login
-from app.views import InstallmentsFilter, InstallmentsTableView, download_csv
+from .utils import fetch_cases
+from app.views import (
+    download_csv,
+    InstallmentsFilter,
+    InstallmentsTableView,
+)
 
 
 class ModelTest(TestCase):
@@ -330,10 +335,41 @@ class TestCsv(TestCase):
 
 
 class FetchCaseTests(TestCase):
-
-    @patch('requests.post')
-    def test_sf_login(self, mock_post):
-        FAKE_TOKEN = "FAKE_TOKEN"
-        mock_post.return_value.json.return_value = {"access_token": FAKE_TOKEN}
-        token = sf_login()
-        self.assertEqual(token, FAKE_TOKEN)
+    def test_fetch_cases_by_case_number(self):
+        FAKE_SF_QUERY_RESPONSES = (
+            {
+                'records': [
+                    {
+                        'Id': 'FAKE_CASE_ID_1',
+                        'CaseNumber': 'FAKE_CASE_NUMBER_1',
+                        'Contract__c': 'FAKE_CONTRACT_ID_1',
+                        'Description': 'FAKE_DESCRIPTION_1',
+                    },
+                    {
+                        'Id': 'FAKE_CASE_ID_2',
+                        'CaseNumber': 'FAKE_CASE_NUMBER_2',
+                        'Contract__c': 'FAKE_CONTRACT_ID_2',
+                        'Description': 'FAKE_DESCRIPTION_2',
+                    },
+                 ]
+            },
+            {
+                'records': [
+                    {
+                        'Eventbrite_Username__c': 'FAKE_EVENTBRITE_USERNAME_1',
+                        'Hoopla_Account_Name__c': 'FAKE_ACCOUNT_NAME_1',
+                        'ActivatedDate': 'FAKE_SIGNED_DATE_1',
+                    },
+                    {
+                        'Eventbrite_Username__c': 'FAKE_EVENTBRITE_USERNAME_2',
+                        'Hoopla_Account_Name__c': 'FAKE_ACCOUNT_NAME_2',
+                        'ActivatedDate': 'FAKE_SIGNED_DATE_2',
+                    },
+                ]
+            },
+        )
+        case_numbers = ['FAKE_CASE_NUMBER_1', 'FAKE_CASE_NUMBER_2']
+        with patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES) as mock_query:
+            result = fetch_cases(','.join(case_numbers))
+        for elem in result:
+            self.assertIn(elem['case_number'], case_numbers)
