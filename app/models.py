@@ -13,6 +13,14 @@ class Contract(models.Model):
     event_id = models.CharField(max_length=80, null=True, blank=True)
     user_id = models.CharField(max_length=80, null=True, blank=True)
 
+    @property
+    def edit(self):
+        return self
+
+    @property
+    def installments(self):
+        return self
+
 
 class Installment(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
