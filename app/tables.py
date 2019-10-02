@@ -18,10 +18,6 @@ class InstallmentsTable(tables.Table):
         fields = (
             'is_recoup',
             'status',
-            'contract.event_id',
-            'contract.user_id',
-            'contract.organizer_account_name',
-            'contract.organizer_email',
             'upfront_projection',
             'maximum_payment_date',
             'payment_date',
@@ -34,7 +30,7 @@ class InstallmentsTable(tables.Table):
     def render_edit(self, value):
         return format_html(
             '<a href="{}"><i class="far fa-edit"></i></a>'.format(reverse(
-                'installments-update', args=(value.contract_id,))
+                'contracts-update', args=(value.contract_id,))
             )
         )
 
@@ -70,7 +66,7 @@ class ContractsTable(tables.Table):
 
     def render_installments(self, value):
         return format_html(
-            '<a href=""><i class="fas fa-list"></i></a>',
+            '<a href="{}"><i class="fas fa-list"></i></a>'.format(reverse('installments-create', args=(value.id,))),
         )
 
 

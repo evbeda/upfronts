@@ -28,6 +28,7 @@ from app.views import (
     ContractsFilter,
     ContractsTableView,
     download_csv,
+    InstallmentView,
     SaveCaseView,
 )
 from app.models import (
@@ -80,7 +81,7 @@ class ModelTest(TestCase):
         self.assertEqual(expected_error_dict_messages, cm.exception.message_dict)
 
 
-class InstallmentTest(TestCase):
+class ContractTest(TestCase):
 
     def setUp(self):
         contract_data = {
@@ -437,3 +438,35 @@ class AddContractTests(TestCase):
         self.assertEqual(response.status_code, 302)
         contract = Contract.objects.first()
         self.assertEqual(contract.case_number, FAKE_CASE_RETURN['CaseNumber'])
+
+
+class InstallmentTest(TestCase):
+
+    def test_create_installment_table(self):
+        factory = RequestFactory()
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        installment_data = {
+            'contract': contract,
+            'is_recoup': False,
+            'status': 'PENDING',
+            'upfront_projection': 9000,
+            'maximum_payment_date': '2019-09-14',
+            'payment_date': '2019-09-10',
+            'recoup_amount': 14000,
+            'gtf': 3500,
+            'gts': 10000,
+        }
+        Installment.objects.create(**installment_data)
+        kwargs = {'contract_id': contract.id}
+        url = reverse('installments-create', kwargs=kwargs)
+        request = factory.get(url)
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = InstallmentView.as_view()(request, **kwargs)
+        content = response.render().content
+        self.assertIn(bytes(contract_data['organizer_email'], encoding='utf-8'), content)

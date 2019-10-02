@@ -64,12 +64,20 @@
                     <div class="card" style="width: 18rem;">
                       <div class="card-body">
                         <h5 class="card-title">Description</h5>
-                        <p class="card-text">{{contract.description}}t.</p>
+                        <p class="card-text">{{contract.description}}</p>
                       </div >
                     </div>
                 </div>
             </div>
+        <div class="float-left">
+                    <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-primary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
         </div>
+        </div>
+     <script>
+        $('#datepicker_max_payment').datepicker({
+            uiLibrary: 'bootstrap4'
+        });
+    </script>
     </body>
 </html>
 {% endblock content %}
