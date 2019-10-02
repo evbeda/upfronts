@@ -22,17 +22,17 @@ from . import (
     INSTALLMENT_CONDITIONS,
     STATUS,
 )
-from .models import (
+from app.views import (
+    download_csv,
+    ContractsFilter,
+    ContractsTableView,
+)
+from app.models import (
     Contract,
     Installment,
     InstallmentCondition,
 )
-from .utils import fetch_cases
-from .views import (
-    download_csv,
-    InstallmentsFilter,
-    InstallmentsTableView,
-)
+from app.utils import fetch_cases
 
 
 class ModelTest(TestCase):
@@ -182,7 +182,7 @@ class RedirectTest(TestCase):
 
     def test_redirect_to_login_when_login_is_required(self):
         c = Client()
-        response = c.get(reverse('installments'))
+        response = c.get(reverse('contracts'))
         self.assertIn(reverse('login'), response.url)
 
 
@@ -204,45 +204,12 @@ class FilterTest(TestCase):
             organizer_email='test@eda.com',
             signed_date='2019-03-15',
         )
-        ins1 = Installment.objects.create(
-                contract=contract1,
-                is_recoup=True,
-                status='COMMITED/APPROVED',
-                upfront_projection=77777,
-                maximum_payment_date='2019-05-30',
-                payment_date='2019-05-05',
-                recoup_amount=55555,
-                gtf=100000,
-                gts=7000,
-        )
-        ins2 = Installment.objects.create(
-                contract=contract2,
-                is_recoup=True,
-                status='COMMITED/APPROVED',
-                upfront_projection=77777,
-                maximum_payment_date='2019-05-30',
-                payment_date='2019-05-05',
-                recoup_amount=55555,
-                gtf=100000,
-                gts=7000,
-        )
-        ins3 = Installment.objects.create(
-                contract=contract3,
-                is_recoup=True,
-                status='COMMITED/APPROVED',
-                upfront_projection=77777,
-                maximum_payment_date='2019-05-30',
-                payment_date='2019-05-05',
-                recoup_amount=55555,
-                gtf=100000,
-                gts=7000,
-        )
-        qs = Installment.objects.all()
-        f = InstallmentsFilter()
+        qs = Contract.objects.all()
+        f = ContractsFilter()
         result = f.search_organizer(qs, '', 'EDA')
-        self.assertIn(ins1, result)
-        self.assertIn(ins3, result)
-        self.assertNotIn(ins2, result)
+        self.assertIn(contract1, result)
+        self.assertIn(contract3, result)
+        self.assertNotIn(contract2, result)
 
 
 class TableTest(TestCase):
@@ -273,10 +240,10 @@ class TableTest(TestCase):
             'done': False,
         }
         self.installment_condition = InstallmentCondition.objects.create(**installment_condition_data)
-        request = factory.get('/installments/')
+        request = factory.get('/contracts/')
         request.user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
-        response = InstallmentsTableView.as_view()(request)
+        response = ContractsTableView.as_view()(request)
         content = response.render().content
         self.assertIn(bytes(contract_data['organizer_account_name'], encoding='utf-8'), content)
 
@@ -293,7 +260,7 @@ class UpdateContractTest(TestCase):
         contract = Contract.objects.create(**contract_data)
         contract_data['event_id'] = '234523'
         request = factory.post(
-            reverse('installments-update', args=[contract.id]), contract_data, content_type='application/json')
+            reverse('contracts-update', args=[contract.id]), contract_data, content_type='application/json')
         self.assertIn(bytes(contract_data['event_id'], encoding='utf-8'), request.body)
 
 

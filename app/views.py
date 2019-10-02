@@ -3,6 +3,7 @@ import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.forms import DateInput
 from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView
@@ -15,42 +16,54 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from app.models import Contract, Installment
-from app.tables import InstallmentsTable
+from app.tables import (
+    ContractsTable,
+)
 
 
-class InstallmentsFilter(FilterSet):
+class ContractsFilter(FilterSet):
 
     organizer_search = CharFilter(label='Organizer', method='search_organizer')
-    signed_date_search = DateFilter(label='Contract signed date', method='search_signed_date')
+    djfdate_time = DateFilter(
+        label='Contract signed date',
+        method='search_signed_date',
+        lookup_expr='icontains',
+        widget=DateInput(
+            attrs={
+                'id': 'datepicker',
+                'type': 'text',
+            },
+        ),
+    )
 
     def search_organizer(self, qs, name, value):
         return qs.filter(
-            Q(contract__organizer_account_name__icontains=value) |
-            Q(contract__organizer_email__icontains=value)
+            Q(organizer_account_name__icontains=value) |
+            Q(organizer_email__icontains=value)
         )
 
     def search_signed_date(self, qs, name, value):
         return qs.filter(
-            Q(contract__signed_date=value)
+            Q(signed_date=value)
         )
 
     class Meta:
-        model = Installment
+        model = Contract
         fields = ('organizer_search',)
 
 
-class InstallmentsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
-    queryset = Installment.objects.all()
-    table_class = InstallmentsTable
-    template_name = "app/installment_table.html"
-    filterset_class = InstallmentsFilter
-
-
-class InstallmentUpdate(UpdateView):
-    template_name = "app/update_installment.html"
+class ContractUpdate(UpdateView):
+    template_name = "app/update_contract.html"
     model = Contract
     fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
-    success_url = reverse_lazy('installments')
+    success_url = reverse_lazy('contracts')
+
+
+class ContractsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
+    queryset = Contract.objects.all()
+    table_class = ContractsTable
+    template_name = "app/contracts_table.html"
+    filterset_class = ContractsFilter
 
 
 def download_csv(request):
