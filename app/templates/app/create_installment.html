@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% bootstrap_css %}
+{% load static %}
+{% load staticfiles %}
+{% load i18n %}
+{% load render_table from django_tables2 %}
+{% block content %}
+<html>
+    <head>
+        <link rel="stylesheet" href="../../static/css/uf_table.css">
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.0/css/all.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class='m-5 p-3'>
+            <div class="row justify-content-center m-3">
+                    <div class="card" style="width: 50rem;">
+                      <div class="card-body">
+                        <h5 class="card-title">Contract</h5>
+                        <p class="card-text">
+                            <li class="m-2"> <b>Account name: </b> {{contract.organizer_account_name}} </li>
+                            <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
+                            <li class="m-2"> <b>Signed date: </b>{{contract.signed_date}} </li>
+                            {% if contract.event_id %}
+                                <li class="m-2"><b>Event id: </b> {{contract.event_id}} </li>
+                            {% endif %}
+                            {% if contract.user_id %}
+                                <li class="m-2"><b>User id: </b> {{contract.user_id}} </li>
+                            {% endif %}
+                        </p>
+                      </div >
+                    </div>
+            </div>
+
+            <div class="row justify-content-center m-5">
+                <div class="">
+                    {% render_table table %}
+                </div>
+            </div>
+
+            <div class="row justify-content-center m-5">
+                <div class="col-6">
+                    <form method="post">{% csrf_token %}
+                        <div class="m-2">
+                            <h2>Create installment</h2>
+                        </div>
+                        <div class="container">
+                            {% bootstrap_form form layout='horizontal' %}
+                            <div class="form-group row">
+                                <div class="col-sm-10 offset-sm-2">
+                                    <div class="float-right">
+                                        <input type='submit' class="btn btn-outline-primary" value='Save' />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class=col-3>
+                    <div class="card" style="width: 18rem;">
+                      <div class="card-body">
+                        <h5 class="card-title">Description</h5>
+                        <p class="card-text">{{contract.description}}t.</p>
+                      </div >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+{% endblock content %}
