@@ -16,9 +16,7 @@ from django_filters import (
     FilterSet,
 )
 from django_filters.views import FilterView
-from django_tables2.views import (
-    SingleTableMixin,
-)
+from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
@@ -130,7 +128,7 @@ class SaveCaseView(View):
         Contract.objects.create(
             organizer_account_name=contract_data['Hoopla_Account_Name__c'],
             organizer_email=contract_data['Eventbrite_Username__c'],
-            signed_date=contract_data['ActivatedDate'].split("T")[0],
+            signed_date=datetime.datetime.strptime(contract_data['ActivatedDate'], "%Y-%m-%dT%H:%M:%S.%f%z"),
             description=case_data['Description'],
             case_number=case_data['CaseNumber'],
             salesforce_id=contract_id,

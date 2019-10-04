@@ -394,7 +394,7 @@ class AddContractTests(TestCase):
                 'contract_id': 'FAKE_CASE_CONTRACT_ID_1',
                 'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_1',
                 'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_1',
-                'signed_date': 'FAKE_CASE_SIGNED_DATE_1',
+                'signed_date': '2019-02-08T21:26:13.000+0000',
             },
             {
                 'case_number': FAKE_CASE_NUMBERS[1],
@@ -402,15 +402,17 @@ class AddContractTests(TestCase):
                 'contract_id': 'FAKE_CASE_CONTRACT_ID_2',
                 'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_2',
                 'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_2',
-                'signed_date': 'FAKE_CASE_SIGNED_DATE_2',
+                'signed_date': '2019-02-08T21:26:13.000+0000',
             },
         ]
         with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
             response = ContractAdd.as_view()(request, **kwargs)
         self.assertEqual(response.status_code, 200)
+        response = response.render().content
         for elem in FAKE_FETCH_DATA:
+            elem['signed_date'] = '02/08/2019'
             for key, value in elem.items():
-                self.assertIn(bytes(value, encoding='utf-8'), response.render().content)
+                self.assertIn(bytes(value, encoding='utf-8'), response)
 
     def test_save_case(self):
         FAKE_CASE_ID = 'FAKE_CASE_ID'
@@ -426,7 +428,7 @@ class AddContractTests(TestCase):
         FAKE_CONTRACT_RETURN = {
             'Hoopla_Account_Name__c': 'FAKE_ORGANIZER_NAME',
             'Eventbrite_Username__c': 'FAKE_ORGANIZER_EMAIL',
-            'ActivatedDate': '2019-10-10',
+            'ActivatedDate': '2019-02-08T21:26:13.000+0000',
         }
 
         with patch('app.views.get_case_by_id', return_value=FAKE_CASE_RETURN), \
