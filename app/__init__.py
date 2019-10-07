@@ -19,3 +19,4 @@ STATUS = [
 SF_USERNAME = get_env_variable('SF_USERNAME')
 SF_PASSWORD = get_env_variable('SF_PASSWORD')
 SF_SECURITY_TOKEN = get_env_variable('SF_SECURITY_TOKEN')
+SF_DOMAIN = get_env_variable('SF_DOMAIN')

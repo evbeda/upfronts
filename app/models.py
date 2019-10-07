@@ -12,6 +12,10 @@ class Contract(models.Model):
     signed_date = models.DateField()
     event_id = models.CharField(max_length=80, null=True, blank=True)
     user_id = models.CharField(max_length=80, null=True, blank=True)
+    description = models.TextField()
+    case_number = models.CharField(max_length=80)
+    salesforce_id = models.CharField(max_length=80)
+    salesforce_case_id = models.CharField(max_length=80)
 
     @property
     def edit(self):

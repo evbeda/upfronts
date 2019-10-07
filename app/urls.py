@@ -5,7 +5,9 @@ from app import views
 
 
 urlpatterns = [
+    url(r'^contracts/search/', views.ContractAdd.as_view(), name='contracts-add'),
     url(r'^contracts/update/(?P<pk>[0-9]+)/$', views.ContractUpdate.as_view(), name='contracts-update'),
+    url(r'^contracts/save/(?P<contract_id>\w+)/$', views.SaveCaseView.as_view(), name='contracts-save'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
     url(r'^', RedirectView.as_view(url='/contracts/'), name='redirect-url'),
 ]
