@@ -6,10 +6,14 @@ from django.db.models import Q
 from django.forms import DateInput
 from django.http import HttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import UpdateView
+from django.urls import reverse_lazy
+from django.views.generic import (
+    CreateView,
+    UpdateView,
+    TemplateView,
+)
 from django_filters import (
     CharFilter,
     DateFilter,
@@ -18,12 +22,12 @@ from django_filters import (
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
-from django.views.generic import TemplateView
 
 from app.models import Contract, Installment
 from app.tables import (
     ContractsTable,
     FetchSalesForceCasesTable,
+    InstallmentsTable,
 )
 from app.utils import (
     fetch_cases,
@@ -77,6 +81,40 @@ class ContractsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     filterset_class = ContractsFilter
 
 
+class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
+    table_class = InstallmentsTable
+    template_name = "app/create_installment.html"
+    model = Installment
+    fields = [
+        "is_recoup",
+        "status",
+        "upfront_projection",
+        "maximum_payment_date",
+        "payment_date",
+        "recoup_amount",
+        "gtf",
+        "gts",
+    ]
+
+    def get_queryset(self):
+        queryset = Installment.objects.filter(contract_id=self.kwargs['contract_id'])
+        return queryset.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
+        context['contract'] = contract
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('installments-create', kwargs=self.kwargs)
+
+    def form_valid(self, form, **kwargs):
+        form.instance.contract_id = self.kwargs['contract_id']
+        self.object = form.save()
+        return super(InstallmentView, self).form_valid(form)
+
+
 def download_csv(request):
     response = HttpResponse(content_type='text/csv')
     filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
@@ -125,7 +163,7 @@ class SaveCaseView(View):
         case_data = get_case_by_id(case_id)
         contract_id = case_data['Contract__c']
         contract_data = get_contract_by_id(contract_id)
-        Contract.objects.create(
+        contract = Contract.objects.create(
             organizer_account_name=contract_data['Hoopla_Account_Name__c'],
             organizer_email=contract_data['Eventbrite_Username__c'],
             signed_date=datetime.datetime.strptime(contract_data['ActivatedDate'], "%Y-%m-%dT%H:%M:%S.%f%z"),
@@ -134,4 +172,4 @@ class SaveCaseView(View):
             salesforce_id=contract_id,
             salesforce_case_id=case_id,
         )
-        return redirect('contracts')
+        return redirect('installments-create', contract.id)
