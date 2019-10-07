@@ -1,3 +1,5 @@
+import datetime
+
 from django.urls import reverse
 from django.utils.html import format_html
 import django_tables2 as tables
@@ -39,11 +41,12 @@ class InstallmentsTable(tables.Table):
 
 
 class ContractsTable(tables.Table):
-    installments = tables.Column()
-    edit = tables.Column()
+    installments = tables.Column(orderable=False)
+    edit = tables.Column(orderable=False)
 
     class Meta:
         model = Contract
+
         row_attrs = {
             "align": 'center'
         }
@@ -77,14 +80,18 @@ class FetchSalesForceCasesTable(tables.Table):
     organizer_email = tables.Column()
     signed_date = tables.Column()
     contract_id = tables.Column()
-    save = tables.Column()
+    save = tables.Column(orderable=False)
 
     class Meta:
         template_name = "django_tables2/bootstrap.html"
 
     def render_save(self, value):
         return format_html(
-            '''<form method="POST" action="{}">                
+            '''<form method="POST" action="{}">
                 <button type="submit" class="btn btn-link"><i class="far fa-save fa-lg"></i></button>
             </form>'''.format(reverse('contracts-save', args=(value,)))
         )
+
+    def render_signed_date(self, value):
+        dt = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+        return dt.strftime("%m/%d/%Y")

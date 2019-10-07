@@ -12,17 +12,17 @@ from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
     UpdateView,
-    TemplateView)
+    TemplateView,
+)
 from django_filters import (
     CharFilter,
     DateFilter,
     FilterSet,
 )
 from django_filters.views import FilterView
-from django_tables2.views import (
-    SingleTableMixin,
-)
+from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
+
 from app.models import Contract, Installment
 from app.tables import (
     ContractsTable,
@@ -85,7 +85,16 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
     table_class = InstallmentsTable
     template_name = "app/create_installment.html"
     model = Installment
-    fields = ["is_recoup", "status", "upfront_projection", "maximum_payment_date", "payment_date", "recoup_amount", "gtf", "gts"]
+    fields = [
+        "is_recoup",
+        "status",
+        "upfront_projection",
+        "maximum_payment_date",
+        "payment_date",
+        "recoup_amount",
+        "gtf",
+        "gts",
+    ]
 
     def get_queryset(self):
         queryset = Installment.objects.filter(contract_id=self.kwargs['contract_id'])
@@ -157,7 +166,7 @@ class SaveCaseView(View):
         contract = Contract.objects.create(
             organizer_account_name=contract_data['Hoopla_Account_Name__c'],
             organizer_email=contract_data['Eventbrite_Username__c'],
-            signed_date=contract_data['ActivatedDate'].split("T")[0],
+            signed_date=datetime.datetime.strptime(contract_data['ActivatedDate'], "%Y-%m-%dT%H:%M:%S.%f%z"),
             description=case_data['Description'],
             case_number=case_data['CaseNumber'],
             salesforce_id=contract_id,

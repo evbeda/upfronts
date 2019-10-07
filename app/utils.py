@@ -1,8 +1,9 @@
 from simple_salesforce import Salesforce
 from . import (
-    SF_USERNAME,
+    SF_DOMAIN,
     SF_PASSWORD,
     SF_SECURITY_TOKEN,
+    SF_USERNAME,
 )
 
 
@@ -36,12 +37,12 @@ def fetch_cases(comma_separated_case_numbers):
 
 
 def get_case_by_id(case_id):
-    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain='test')
+    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain=SF_DOMAIN)
     case = sf.Case.get(case_id)
     return case
 
 
 def get_contract_by_id(contract_id):
-    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain='test')
+    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain=SF_DOMAIN)
     contract = sf.Contract.get(contract_id)
     return contract
