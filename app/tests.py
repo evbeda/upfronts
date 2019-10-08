@@ -23,6 +23,7 @@ from . import (
     STATUS,
 )
 from app.views import (
+    AllInstallmentsView,
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
@@ -471,3 +472,79 @@ class InstallmentTest(TestCase):
         response = InstallmentView.as_view()(request, **kwargs)
         content = response.render().content
         self.assertIn(bytes(contract_data['organizer_email'], encoding='utf-8'), content)
+
+
+class AllInstallmentsViewTest(TestCase):
+
+    def test_all_installments_view(self):
+
+        '''Test "AllInstallmentsView". In this view all installments are shown.'''
+
+        factory = RequestFactory()
+        contract1 = Contract.objects.create(
+            organizer_account_name='EDA',
+            organizer_email='test@test.com',
+            signed_date='2019-03-20',
+            description='Some description',
+            case_number='903847iuew',
+            salesforce_id='4230789sdfk',
+            salesforce_case_id='4237sdfk423',
+        )
+        contract2 = Contract.objects.create(
+            organizer_account_name='NOT_AN_INTERESTING_NAME',
+            organizer_email='test@test.com',
+            signed_date='2019-03-15',
+            description='Other description',
+            case_number='089i3e423w',
+            salesforce_id='98773hsj',
+            salesforce_case_id='sasdfk42g3',
+        )
+        contract3 = Contract.objects.create(
+            organizer_account_name='NOT_AN_INTERESTING_NAME',
+            organizer_email='test@eda.com',
+            signed_date='2019-03-15',
+            description='This is important contract information',
+            case_number='1234asd',
+            salesforce_id='fks02934',
+            salesforce_case_id='534798vbk',
+        )
+        installment1 = Installment.objects.create(
+            contract=contract1,
+            is_recoup=True,
+            status='COMMITED/APPROVED',
+            upfront_projection=77777,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=55555,
+            gtf=100000,
+            gts=7000,
+        )
+        installment2 = Installment.objects.create(
+            contract=contract2,
+            is_recoup=True,
+            status='COMMITED/APPROVED',
+            upfront_projection=587934,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=98736,
+            gtf=6280,
+            gts=1830,
+        )
+        installment3 = Installment.objects.create(
+            contract=contract3,
+            is_recoup=False,
+            status='COMMITED/APPROVED',
+            upfront_projection=77777,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=55555,
+            gtf=100000,
+            gts=7000,
+        )
+        request = factory.get(reverse('all-installments'))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        self.assertIn(bytes(installment1.status, encoding='utf-8'), response.render().content)
+        self.assertIn(bytes(str(installment2.gtf), encoding='utf-8'), response.render().content)
+        self.assertIn(bytes(str(installment3.upfront_projection), encoding='utf-8'), response.render().content)
