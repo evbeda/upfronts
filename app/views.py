@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
+    ListView,
     UpdateView,
     TemplateView,
 )
@@ -173,3 +174,9 @@ class SaveCaseView(View):
             salesforce_case_id=case_id,
         )
         return redirect('installments-create', contract.id)
+
+
+class AllInstallmentsView(LoginRequiredMixin, ListView):
+
+    model = Installment
+    template_name = "app/all-installments.html"
