@@ -30,6 +30,7 @@ from app.views import (
     ContractsFilter,
     ContractsTableView,
     download_csv,
+    InstallmentsFilter,
     InstallmentView,
     SaveCaseView,
 )
@@ -556,3 +557,80 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(bytes(installment1.status, encoding='utf-8'), response.render().content)
         self.assertIn(bytes(str(installment2.gtf), encoding='utf-8'), response.render().content)
         self.assertIn(bytes(str(installment3.upfront_projection), encoding='utf-8'), response.render().content)
+
+    def test_filter_installment(self):
+        contract1 = Contract.objects.create(
+            organizer_account_name='EDA',
+            organizer_email='test@test.com',
+            signed_date='2019-03-20',
+            description='Some description',
+            case_number='903847iuew',
+            salesforce_id='4230789sdfk',
+            salesforce_case_id='4237sdfk423',
+        )
+        contract2 = Contract.objects.create(
+            organizer_account_name='NOT_AN_INTERESTING_NAME',
+            organizer_email='test@test.com',
+            signed_date='2019-03-15',
+            description='Other description',
+            case_number='089i3e423w',
+            salesforce_id='98773hsj',
+            salesforce_case_id='sasdfk42g3',
+        )
+        contract3 = Contract.objects.create(
+            organizer_account_name='NOT_AN_INTERESTING_NAME',
+            organizer_email='test@eda.com',
+            signed_date='2019-03-16',
+            description='This is important contract information',
+            case_number='1234asd',
+            salesforce_id='fks02934',
+            salesforce_case_id='534798vbk',
+        )
+        installment1 = Installment.objects.create(
+            contract=contract1,
+            is_recoup=True,
+            status='COMMITED/APPROVED',
+            upfront_projection=77777,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=55555,
+            gtf=100000,
+            gts=7000,
+        )
+        installment2 = Installment.objects.create(
+            contract=contract2,
+            is_recoup=True,
+            status='COMMITED/APPROVED',
+            upfront_projection=587934,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-25',
+            recoup_amount=98736,
+            gtf=6280,
+            gts=1830,
+        )
+        installment3 = Installment.objects.create(
+            contract=contract3,
+            is_recoup=False,
+            status='PENDING',
+            upfront_projection=77777,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=55555,
+            gtf=100000,
+            gts=7000,
+        )
+        qs = Installment.objects.all()
+        f = InstallmentsFilter()
+        result_search_status = f.search_status(qs, '', 'COMMITED/APPROVED')
+        result_search_organizer = f.search_contract_organizer(qs, '', 'EDA')
+        result_search_signed_date = f.search_contract_signed_date(qs, '', '2019-03-15')
+        result_search_maximum_payment_date = f.search_maximum_payment_date(qs, '', '2019-05-30')
+        result_search_payment_date = f.search_payment_date(qs, '', '2019-05-05')
+        self.assertIn(installment1, result_search_status)
+        self.assertIn(installment1, result_search_organizer)
+        self.assertIn(installment2, result_search_status)
+        self.assertIn(installment2, result_search_signed_date)
+        self.assertNotIn(installment2, result_search_payment_date)
+        self.assertIn(installment3, result_search_maximum_payment_date)
+        self.assertIn(installment3, result_search_payment_date)
+        self.assertNotIn(installment3, result_search_status)
