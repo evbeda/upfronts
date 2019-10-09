@@ -1,4 +1,5 @@
 import csv
+import datetime
 import io
 from unittest.mock import patch
 
@@ -13,6 +14,7 @@ from django.test import (
     TestCase,
 )
 from django.urls import reverse
+from freezegun import freeze_time
 from simple_salesforce import Salesforce
 
 from . import (
@@ -136,8 +138,7 @@ class InstallmentConditionTest(TestCase):
             'organizer_email': 'pepe@planner.com',
             'signed_date': '2019-09-14',
         }
-        contract = Contract(**contract_data)
-        contract.save()
+        contract = Contract.objects.create(**contract_data)
         installment_data = {
             'contract': contract,
             'is_recoup': False,
@@ -149,14 +150,12 @@ class InstallmentConditionTest(TestCase):
             'gtf': 3500,
             'gts': 10000,
         }
-        self.installment = Installment(**installment_data)
-        self.installment.save()
+        self.installment = Installment.objects.create(**installment_data)
 
     def test_create_valid_installment_condition(self):
         installment_condition_data = {
             'condition_name': INSTALLMENT_CONDITIONS[1][0],
             'installment': self.installment,
-            'done': False,
         }
         installment_condition = InstallmentCondition(**installment_condition_data)
         installment_condition.full_clean()
@@ -165,7 +164,6 @@ class InstallmentConditionTest(TestCase):
         installment_condition_data = {
             'condition_name': 'INVALID CONDITION',
             'installment': self.installment,
-            'done': False,
         }
         expected_response = {
             'condition_name': ["Value 'INVALID CONDITION' is not a valid choice."],
@@ -178,7 +176,6 @@ class InstallmentConditionTest(TestCase):
     def test_create_installment_condition_without_installment(self):
         installment_condition_data = {
             'condition_name': INSTALLMENT_CONDITIONS[1][0],
-            'done': False,
         }
         expected_response = {
             'installment': ['This field cannot be null.'],
@@ -187,6 +184,18 @@ class InstallmentConditionTest(TestCase):
         with self.assertRaises(ValidationError) as cm:
             installment_condition.full_clean()
         self.assertEqual(expected_response, cm.exception.message_dict)
+
+    def test_mark_condition_as_done(self):
+        FREEZED_TIME = datetime.datetime(year=2019, month=8, day=20, hour=16, minute=30)
+        condition_data = {
+            'condition_name': 'TEST_CONDITION_NAME',
+            'installment': self.installment,
+        }
+        condition = InstallmentCondition.objects.create(**condition_data)
+        self.assertEqual(condition.done, None)
+        with freeze_time(FREEZED_TIME):
+            condition.mark_as_done()
+        self.assertEqual(condition.done, FREEZED_TIME)
 
 
 class RedirectTest(TestCase):
@@ -248,7 +257,6 @@ class TableTest(TestCase):
         installment_condition_data = {
             'condition_name': INSTALLMENT_CONDITIONS[1][0],
             'installment': self.installment,
-            'done': False,
         }
         self.installment_condition = InstallmentCondition.objects.create(**installment_condition_data)
         request = factory.get('/contracts/')
