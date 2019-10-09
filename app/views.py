@@ -26,7 +26,10 @@ from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
 
 from app import STATUS
-from app.models import Contract, Installment
+from app.models import (
+    Contract,
+    Installment
+)
 from app.tables import (
     ContractsTable,
     FetchSalesForceCasesTable,
@@ -261,3 +264,35 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
     model = Installment
     template_name = "app/all-installments.html"
     filterset_class = InstallmentsFilter
+
+    def get(self, request, *args, **kwargs):
+        filtered_response = super().get(request, *args, **kwargs)
+        if 'download' in filtered_response.context_data['url']:
+            response = HttpResponse(content_type='text/csv')
+            filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+            installments = filtered_response.context_data['installment_list']
+            writer = csv.writer(response)
+            for installment in installments:
+                writer.writerow([
+                    installment.is_recoup,
+                    installment.status,
+                    installment.contract.organizer_account_name,
+                    installment.upfront_projection,
+                    installment.contract.organizer_email,
+                    installment.contract.signed_date,
+                    installment.contract.signed_date,
+                    installment.upfront_projection,
+                    installment.maximum_payment_date,
+                    installment.payment_date,
+                    installment.recoup_amount,
+                    installment.gts,
+                    installment.gtf,
+                ])
+            return response
+        return filtered_response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['url'] = self.request.get_full_path()
+        return context

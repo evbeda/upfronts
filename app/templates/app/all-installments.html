@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
-<!--{% load bootstrap4 %}-->
-<!--{% bootstrap_css %}-->
+{% load bootstrap4 %}
+{% load static %}
+{% bootstrap_css %}
 {% block title %} Installments {% endblock title %}
 {% block content %}
 <html>
   <head>
-    <link rel="stylesheet" href="../../static/css/installment_table.css">
+    <link rel="stylesheet" href="{% static 'css/installment_table.css' %}">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.0/css/all.css">
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
@@ -25,6 +26,7 @@
             <form action="" method="get" class="form form-inline">
               {% bootstrap_form filter.form layout='inline' %}
               {% bootstrap_button '<i class="fab fa-sistrix"></i>' %}
+
             </form>
           {% endif %}
         </div>
@@ -63,8 +65,8 @@
             <td>{{installment.recoup_amount}}</td>
             <td>{{installment.gtf}}</td>
             <td>{{installment.gts}}</td>
-            <td><a href="{}"><i class="far fa-edit"></i></a></td>
-            <td><a href="{}"><i class="fas fa-trash-alt"></i></a></td>
+            <td><a><i class="far fa-edit"></i></a></td>
+            <td><a><i class="fas fa-trash-alt"></i></a></td>
           </tr>
         {% endfor %}
         </tbody>
@@ -73,6 +75,18 @@
     {% else %}
       <p class="lead m-5 "> No installment was found.</p>
     {% endif %}
+    <div class="float-right ml-2" >
+      <div class="dropdown">
+          <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown">
+              Export to
+          </button>
+          <div class="dropdown-menu dropdown-menu-right">
+<!--              <a class="dropdown-item" href="{% url 'download_csv'%}"><i class="fas fa-file-csv"></i> CSV</a>-->
+              <a class="dropdown-item" href="{{url}}&download=true"><i class="fas fa-file-csv"></i> CSV</a>
+              <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
+          </div>
+      </div>
+    </div>
     <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-primary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
     </div>
     <script>
