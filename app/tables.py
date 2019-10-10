@@ -74,10 +74,12 @@ class ContractsTable(tables.Table):
         )
 
     def render_event_id(self, value):
-        pyperclip.copy('The text to be copied to the clipboard.')
-        pepe = pyperclip.paste()
-
         link = "https://www.evbqa.com/myevent/{}/reports/attendee/".format(value)
+        return format_html(
+            '<a href="{}">{}</a>'.format(link, value))
+
+    def render_user_id(self, value):
+        link = "https://admin.eventbrite.com/admin/upfront_recoups/manage"
         return format_html(
             '<a href="{}">{}</a>'.format(link, value))
 

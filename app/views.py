@@ -79,6 +79,11 @@ class ContractUpdate(UpdateView):
     fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
     success_url = reverse_lazy('contracts')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['info_event_url']="https://admin.eventbrite.com/admin/search/?search_type=&search_query={}".format(context['object'].organizer_email)
+        return context
+
 
 class ContractsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     queryset = Contract.objects.all()
@@ -110,6 +115,8 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context = super().get_context_data(**kwargs)
         contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
         context['contract'] = contract
+        context['link_to_recoup'] = "https://admin.eventbrite.com/admin/upfront_recoups/manage"
+        context['link_to_event'] = "https://admin.eventbrite.com/admin/upfront_recoups/manage"
         return context
 
     def get_success_url(self):
