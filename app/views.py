@@ -23,7 +23,7 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
 
-from app.models import Contract, Installment
+from app.models import Contract, Installment, InstallmentCondition
 from app.tables import (
     ContractsTable,
     FetchSalesForceCasesTable,
@@ -173,3 +173,27 @@ class SaveCaseView(View):
             salesforce_case_id=case_id,
         )
         return redirect('installments-create', contract.id)
+
+
+class ConditionView(LoginRequiredMixin, CreateView):
+    template_name = "app/create_condition.html"
+    model = InstallmentCondition
+    fields = [
+        'id',
+        'condition_name',
+    ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        installment = Installment.objects.filter(id=self.kwargs['installment_id']).get()
+        context['installment'] = installment
+        context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('conditions', kwargs=self.kwargs)
+
+    def form_valid(self, form, **kwargs):
+        form.instance.installment_id = self.kwargs['installment_id']
+        self.object = form.save()
+        return super(ConditionView, self).form_valid(form)
