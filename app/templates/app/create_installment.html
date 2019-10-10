@@ -26,11 +26,12 @@
                             <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
                             <li class="m-2"> <b>Signed date: </b>{{contract.signed_date}} </li>
                             {% if contract.event_id %}
-                                <li class="m-2"><b>Event id: </b> {{contract.event_id}} </li>
+                                <li class="m-2"><b>Event id: </b> <a href="https://www.evbqa.com/myevent/{{contract.event_id}}/reports/attendee/">{{contract.event_id}}</a></li>
                             {% endif %}
                             {% if contract.user_id %}
                                 <li class="m-2"><b>User id: </b> {{contract.user_id}} </li>
                             {% endif %}
+                            <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></li>
                         </p>
                       </div >
                     </div>

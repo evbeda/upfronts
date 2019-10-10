@@ -1,4 +1,5 @@
 import datetime
+import pyperclip
 
 from django.urls import reverse
 from django.utils.html import format_html
@@ -72,6 +73,13 @@ class ContractsTable(tables.Table):
             '<a href="{}"><i class="fas fa-list"></i></a>'.format(reverse('installments-create', args=(value.id,))),
         )
 
+    def render_event_id(self, value):
+        pyperclip.copy('The text to be copied to the clipboard.')
+        pepe = pyperclip.paste()
+
+        link = "https://www.evbqa.com/myevent/{}/reports/attendee/".format(value)
+        return format_html(
+            '<a href="{}">{}</a>'.format(link, value))
 
 class FetchSalesForceCasesTable(tables.Table):
     case_number = tables.Column()
@@ -85,6 +93,11 @@ class FetchSalesForceCasesTable(tables.Table):
     class Meta:
         template_name = "django_tables2/bootstrap.html"
 
+    def render_case_id(self, value):
+        link_to_salesforce_case = self.data.data[0]['link_to_salesforce_case']
+        return format_html(
+            '''<a href="{}">{}</a>'''.format(link_to_salesforce_case, value)
+        )
     def render_save(self, value):
         return format_html(
             '''<form method="POST" action="{}">

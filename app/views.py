@@ -177,6 +177,7 @@ class SaveCaseView(View):
             case_number=case_data['CaseNumber'],
             salesforce_id=contract_id,
             salesforce_case_id=case_id,
+            link_to_salesforce_case=case_data['Case_URL__c'],
         )
         return redirect('installments-create', contract.id)
 
