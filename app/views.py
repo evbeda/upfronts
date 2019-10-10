@@ -25,7 +25,12 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
 
-from app import STATUS
+from app import (
+    LINK_TO_RECOUPS,
+    LINK_TO_REPORT_EVENTS,
+    LINK_TO_SEARCH_EVENT_OR_USER,
+    STATUS,
+)
 from app.models import (
     Contract,
     Installment
@@ -81,7 +86,8 @@ class ContractUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['info_event_url']="https://admin.eventbrite.com/admin/search/?search_type=&search_query={}".format(context['object'].organizer_email)
+        context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
+            email_organizer=context['object'].organizer_email)
         return context
 
 
@@ -115,8 +121,8 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context = super().get_context_data(**kwargs)
         contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
         context['contract'] = contract
-        context['link_to_recoup'] = "https://admin.eventbrite.com/admin/upfront_recoups/manage"
-        context['link_to_event'] = "https://admin.eventbrite.com/admin/upfront_recoups/manage"
+        context['link_to_recoup'] = LINK_TO_RECOUPS
+        context['link_to_event'] = LINK_TO_REPORT_EVENTS.format(contract.event_id)
         return context
 
     def get_success_url(self):
