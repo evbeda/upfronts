@@ -431,12 +431,14 @@ class FetchCaseTests(TestCase):
                         'CaseNumber': 'FAKE_CASE_NUMBER_1',
                         'Contract__c': 'FAKE_CONTRACT_ID_1',
                         'Description': 'FAKE_DESCRIPTION_1',
+                        'Case_URL__c': 'FAKE_CASE_URL_1',
                     },
                     {
                         'Id': 'FAKE_CASE_ID_2',
                         'CaseNumber': 'FAKE_CASE_NUMBER_2',
                         'Contract__c': 'FAKE_CONTRACT_ID_2',
                         'Description': 'FAKE_DESCRIPTION_2',
+                        'Case_URL__c': 'FAKE_CASE_URL_2',
                     },
                  ]
             },

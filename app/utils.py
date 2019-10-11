@@ -54,7 +54,7 @@ def fetch_cases_by_date(case_date_from, case_date_to):
     sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain='test')
 
     cases = sf.query(
-        "SELECT id, Contract__c, Description, CaseNumber from Case WHERE (Subject LIKE '{r}' OR Subject like '{n}') AND Contract__c != null"
+        "SELECT id, Contract__c, Description, CaseNumber, Case_URL__c from Case WHERE (Subject LIKE '{r}' OR Subject like '{n}') AND Contract__c != null"
         .format(r='RECOUPABLE%', n='NON-RECOUPABLE%'))['records']
 
     contracts_ids_query = "SELECT Contract__c from Case WHERE (Subject LIKE '{r}' OR Subject like '{n}') AND Contract__c != null".format(r='RECOUPABLE%', n='NON-RECOUPABLE%')
@@ -73,6 +73,7 @@ def fetch_cases_by_date(case_date_from, case_date_to):
                     'case_number': case['CaseNumber'],
                     'contract_id': case['Contract__c'],
                     'description': case['Description'],
+                    'link_to_salesforce_case': case['Case_URL__c'],
                     'organizer_email': contract['Eventbrite_Username__c'],
                     'organizer_name': contract['Hoopla_Account_Name__c'],
                     'signed_date': contract['ActivatedDate'],
