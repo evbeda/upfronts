@@ -1,9 +1,9 @@
 import csv
+import datetime
 import io
 from unittest.mock import patch
 
 from django.contrib.auth.models import (
-    AnonymousUser,
     User,
 )
 from django.core.exceptions import ValidationError
@@ -13,6 +13,7 @@ from django.test import (
     TestCase,
 )
 from django.urls import reverse
+from freezegun import freeze_time
 from simple_salesforce import Salesforce
 
 from . import (
@@ -23,10 +24,11 @@ from . import (
     STATUS,
 )
 from app.views import (
+    AllInstallmentsView,
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
-    download_csv,
+    InstallmentsFilter,
     InstallmentView,
     SaveCaseView,
 )
@@ -52,6 +54,7 @@ class ModelTest(TestCase):
             'case_number': '345978',
             'salesforce_id': '23465789',
             'salesforce_case_id': '4680990',
+            'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
         }
         contract = Contract(**contract_data)
         contract.full_clean()
@@ -69,6 +72,7 @@ class ModelTest(TestCase):
         }
 
         expected_error_dict_messages = {
+            'link_to_salesforce_case': ['This field cannot be blank.'],
             'organizer_account_name': ['This field cannot be blank.'],
             'organizer_email': ['Enter a valid email address.'],
             'signed_date': [
@@ -139,8 +143,7 @@ class InstallmentConditionTest(TestCase):
             'organizer_email': 'pepe@planner.com',
             'signed_date': '2019-09-14',
         }
-        contract = Contract(**contract_data)
-        contract.save()
+        contract = Contract.objects.create(**contract_data)
         installment_data = {
             'contract': contract,
             'is_recoup': False,
@@ -152,14 +155,12 @@ class InstallmentConditionTest(TestCase):
             'gtf': 3500,
             'gts': 10000,
         }
-        self.installment = Installment(**installment_data)
-        self.installment.save()
+        self.installment = Installment.objects.create(**installment_data)
 
     def test_create_valid_installment_condition(self):
         installment_condition_data = {
             'condition_name': INSTALLMENT_CONDITIONS[1][0],
             'installment': self.installment,
-            'done': False,
         }
         installment_condition = InstallmentCondition(**installment_condition_data)
         installment_condition.full_clean()
@@ -168,7 +169,6 @@ class InstallmentConditionTest(TestCase):
         installment_condition_data = {
             'condition_name': 'INVALID CONDITION',
             'installment': self.installment,
-            'done': False,
         }
         expected_response = {
             'condition_name': ["Value 'INVALID CONDITION' is not a valid choice."],
@@ -181,7 +181,6 @@ class InstallmentConditionTest(TestCase):
     def test_create_installment_condition_without_installment(self):
         installment_condition_data = {
             'condition_name': INSTALLMENT_CONDITIONS[1][0],
-            'done': False,
         }
         expected_response = {
             'installment': ['This field cannot be null.'],
@@ -190,6 +189,18 @@ class InstallmentConditionTest(TestCase):
         with self.assertRaises(ValidationError) as cm:
             installment_condition.full_clean()
         self.assertEqual(expected_response, cm.exception.message_dict)
+
+    def test_mark_condition_as_done(self):
+        FREEZED_TIME = datetime.datetime(year=2019, month=8, day=20, hour=16, minute=30)
+        condition_data = {
+            'condition_name': 'TEST_CONDITION_NAME',
+            'installment': self.installment,
+        }
+        condition = InstallmentCondition.objects.create(**condition_data)
+        self.assertEqual(condition.done, None)
+        with freeze_time(FREEZED_TIME):
+            condition.mark_as_done()
+        self.assertEqual(condition.done, FREEZED_TIME)
 
 
 class RedirectTest(TestCase):
@@ -251,7 +262,6 @@ class TableTest(TestCase):
         installment_condition_data = {
             'condition_name': INSTALLMENT_CONDITIONS[1][0],
             'installment': self.installment,
-            'done': False,
         }
         self.installment_condition = InstallmentCondition.objects.create(**installment_condition_data)
         request = factory.get('/contracts/')
@@ -282,23 +292,7 @@ class TestDownloadCsv(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-
-    def test_status_code_200(self):
-        request = self.factory.get(reverse('download_csv'))
-        request.user = AnonymousUser()
-        response = download_csv(request)
-        self.assertEqual(response.status_code, 200)
-
-    def test_download_csv(self):
-        request = self.factory.get(reverse('download_csv'))
-        request.user = AnonymousUser()
-        response = download_csv(request)
-
-        self.assertEqual('text/csv', dict(response.items())['Content-Type'])
-        self.assertIn('-upfronts.csv', dict(response.items())['Content-Disposition'])
-
-    def test_download_csv_with_info(self):
-        expected_upfront_dict = {
+        self.expected_upfront_dict = {
             'is_recoup': 'True',
             'status': 'COMMITED/APPROVED',
             'account_name': 'EDA',
@@ -311,13 +305,13 @@ class TestDownloadCsv(TestCase):
             'gtf': '7000.0000',
             'gts': '100000.0000',
         }
-        contract = Contract.objects.create(
+        self.contract = Contract.objects.create(
             organizer_account_name='EDA',
             organizer_email='juan@eventbrite.com',
             signed_date='2019-04-04',
         )
         Installment.objects.create(
-            contract=contract,
+            contract=self.contract,
             is_recoup=True,
             status='COMMITED/APPROVED',
             upfront_projection=77777,
@@ -327,14 +321,61 @@ class TestDownloadCsv(TestCase):
             gtf=100000,
             gts=7000,
         )
-        request = self.factory.get(reverse('download_csv'))
-        request.user = AnonymousUser()
-        response = download_csv(request)
+
+    def test_status_code_200(self):
+        request = self.factory.get(reverse('all-installments'))
+        request.path = request.path+'?download=true'
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_download_csv(self):
+        request = self.factory.get(reverse('all-installments'))
+        request.path = request.path + '?download=true'
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        self.assertEqual('text/csv', dict(response.items())['Content-Type'])
+        self.assertIn('-upfronts.csv', dict(response.items())['Content-Disposition'])
+
+    def test_download_csv_without_filter(self):
+        request = self.factory.get(reverse('all-installments')+'?download=true')
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
         response_decode = response.content.decode('utf-8')
         csv_list = csv.reader(io.StringIO(response_decode))
         for row in csv_list:
             csv_set = set(row)
-        expected_csv_set = set(list(expected_upfront_dict.values()))
+        expected_csv_set = set(list(self.expected_upfront_dict.values()))
+        self.assertEqual(csv_set, expected_csv_set)
+
+    def test_download_csv_with_filter(self):
+        Installment.objects.create(
+            contract=self.contract,
+            is_recoup=True,
+            status='PENDING',
+            upfront_projection=77777,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=55555,
+            gtf=100000,
+            gts=7000,
+        )
+        request = self.factory.get(
+            reverse('all-installments') +
+            '?search_organizer=&djfdate_time_signed_date=&djfdate_time_max_payment_date='
+            '&djfdate_ttime_payment_date=&status=COMMITED%2FAPPROVED&download=true'
+        )
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        response_decode = response.content.decode('utf-8')
+        csv_list = csv.reader(io.StringIO(response_decode))
+        for row in csv_list:
+            csv_set = set(row)
+        expected_csv_set = set(list(self.expected_upfront_dict.values()))
         self.assertEqual(csv_set, expected_csv_set)
 
 
@@ -348,12 +389,14 @@ class FetchCaseTests(TestCase):
                         'CaseNumber': 'FAKE_CASE_NUMBER_1',
                         'Contract__c': 'FAKE_CONTRACT_ID_1',
                         'Description': 'FAKE_DESCRIPTION_1',
+                        'Case_URL__c': 'https://pe33.zzxxzzz.com/5348fObs',
                     },
                     {
                         'Id': 'FAKE_CASE_ID_2',
                         'CaseNumber': 'FAKE_CASE_NUMBER_2',
                         'Contract__c': 'FAKE_CONTRACT_ID_2',
                         'Description': 'FAKE_DESCRIPTION_2',
+                        'Case_URL__c': 'https://pe33.zzxxzzz.com/5348fObs',
                     },
                  ]
             },
@@ -442,6 +485,7 @@ class AddContractTests(TestCase):
                 'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_1',
                 'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_1',
                 'signed_date': '2019-02-08T21:26:13.000+0000',
+                'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
             },
             {
                 'case_number': FAKE_CASE_NUMBERS[1],
@@ -450,6 +494,7 @@ class AddContractTests(TestCase):
                 'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_2',
                 'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_2',
                 'signed_date': '2019-02-08T21:26:13.000+0000',
+                'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
             },
         ]
         with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
@@ -471,6 +516,7 @@ class AddContractTests(TestCase):
             'CaseNumber': "FAKE_CASE_NUMBER",
             'Description': "FAKE_CASE_DESCRIPTION",
             'Contract__c': FAKE_CONTRACT_ID,
+            'Case_URL__c': 'https://pe33.zzxxzzz.com/5348fObs',
         }
         FAKE_CONTRACT_RETURN = {
             'Hoopla_Account_Name__c': 'FAKE_ORGANIZER_NAME',
@@ -517,3 +563,99 @@ class InstallmentTest(TestCase):
         response = InstallmentView.as_view()(request, **kwargs)
         content = response.render().content
         self.assertIn(bytes(contract_data['organizer_email'], encoding='utf-8'), content)
+
+
+class AllInstallmentsViewTest(TestCase):
+
+    def setUp(self):
+        contract1 = Contract.objects.create(
+            organizer_account_name='EDA',
+            organizer_email='test@test.com',
+            signed_date='2019-03-20',
+            description='Some description',
+            case_number='903847iuew',
+            salesforce_id='4230789sdfk',
+            salesforce_case_id='4237sdfk423',
+        )
+        contract2 = Contract.objects.create(
+            organizer_account_name='NOT_AN_INTERESTING_NAME',
+            organizer_email='test@test.com',
+            signed_date='2019-03-15',
+            description='Other description',
+            case_number='089i3e423w',
+            salesforce_id='98773hsj',
+            salesforce_case_id='sasdfk42g3',
+        )
+        contract3 = Contract.objects.create(
+            organizer_account_name='NOT_AN_INTERESTING_NAME',
+            organizer_email='test@eda.com',
+            signed_date='2019-03-15',
+            description='This is important contract information',
+            case_number='1234asd',
+            salesforce_id='fks02934',
+            salesforce_case_id='534798vbk',
+        )
+        self.installment1 = Installment.objects.create(
+            contract=contract1,
+            is_recoup=True,
+            status='COMMITED/APPROVED',
+            upfront_projection=77777,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=55555,
+            gtf=100000,
+            gts=7000,
+        )
+        self.installment2 = Installment.objects.create(
+            contract=contract2,
+            is_recoup=True,
+            status='COMMITED/APPROVED',
+            upfront_projection=587934,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-25',
+            recoup_amount=98736,
+            gtf=6280,
+            gts=1830,
+        )
+        self.installment3 = Installment.objects.create(
+            contract=contract3,
+            is_recoup=False,
+            status='PENDING',
+            upfront_projection=77777,
+            maximum_payment_date='2019-05-30',
+            payment_date='2019-05-05',
+            recoup_amount=55555,
+            gtf=100000,
+            gts=7000,
+        )
+
+    def test_all_installments_view(self):
+
+        '''Test "AllInstallmentsView". In this view all installments are shown.'''
+
+        factory = RequestFactory()
+
+        request = factory.get(reverse('all-installments'))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        self.assertIn(bytes(self.installment1.status, encoding='utf-8'), response.render().content)
+        self.assertIn(bytes(str(self.installment2.gtf), encoding='utf-8'), response.render().content)
+        self.assertIn(bytes(str(self.installment3.upfront_projection), encoding='utf-8'), response.render().content)
+
+    def test_filter_installment(self):
+        qs = Installment.objects.all()
+        f = InstallmentsFilter()
+        result_search_status = f.search_status(qs, '', 'COMMITED/APPROVED')
+        result_search_organizer = f.search_contract_organizer(qs, '', 'EDA')
+        result_search_signed_date = f.search_contract_signed_date(qs, '', '2019-03-15')
+        result_search_maximum_payment_date = f.search_maximum_payment_date(qs, '', '2019-05-30')
+        result_search_payment_date = f.search_payment_date(qs, '', '2019-05-05')
+        self.assertIn(self.installment1, result_search_status)
+        self.assertIn(self.installment1, result_search_organizer)
+        self.assertIn(self.installment2, result_search_status)
+        self.assertIn(self.installment2, result_search_signed_date)
+        self.assertNotIn(self.installment2, result_search_payment_date)
+        self.assertIn(self.installment3, result_search_maximum_payment_date)
+        self.assertIn(self.installment3, result_search_payment_date)
+        self.assertNotIn(self.installment3, result_search_status)

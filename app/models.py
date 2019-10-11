@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 
 from . import (
@@ -16,6 +17,7 @@ class Contract(models.Model):
     case_number = models.CharField(max_length=80)
     salesforce_id = models.CharField(max_length=80)
     salesforce_case_id = models.CharField(max_length=80)
+    link_to_salesforce_case = models.CharField(max_length=40)
 
     @property
     def edit(self):
@@ -45,4 +47,7 @@ class Installment(models.Model):
 class InstallmentCondition(models.Model):
     condition_name = models.CharField(max_length=80, choices=INSTALLMENT_CONDITIONS)
     installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
-    done = models.BooleanField(default=False)
+    done = models.DateTimeField(blank=True, null=True)
+
+    def mark_as_done(self):
+        self.done = datetime.datetime.now()

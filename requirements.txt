@@ -19,6 +19,7 @@ django-tables2==2.1.0
 docopt==0.6.2
 entrypoints==0.3
 flake8==3.7.8
+freezegun==0.3.12
 gunicorn==19.9.0
 idna==2.8
 ipython==7.8.0
@@ -43,6 +44,7 @@ Pygments==2.4.2
 PyJWT==1.7.1
 pyOpenSSL==19.0.0
 python-coveralls==2.9.3
+python-dateutil==2.8.0
 python3-openid==3.1.0
 pytz==2019.2
 requests==2.22.0
