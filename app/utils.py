@@ -51,7 +51,7 @@ def get_contract_by_id(contract_id):
 
 def fetch_cases_by_date(case_date_from, case_date_to):
 
-    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain='test')
+    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain=SF_DOMAIN)
 
     cases = sf.query(
         "SELECT id, Contract__c, Description, CaseNumber, Case_URL__c from Case WHERE (Subject LIKE '{r}' OR Subject like '{n}') AND Contract__c != null"
