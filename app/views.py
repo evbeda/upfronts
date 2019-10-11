@@ -178,7 +178,7 @@ class ContractAdd(TemplateView):
                 for elem in contract_data:
                     elem['save'] = elem['case_id']
                     context["table"] = FetchSalesForceCasesTable(contract_data)
-            except:
+            except Exception:
                 context["message"] = "Please enter both dates"
         if case_numbers:
             try:
@@ -186,7 +186,7 @@ class ContractAdd(TemplateView):
                 for elem in contract_data:
                     elem['save'] = elem['case_id']
                 context['table'] = FetchSalesForceCasesTable(contract_data)
-            except:
+            except Exception:
                 context["message"] = "This case number: '{}' doesn't exist".format(case_numbers)
         return context
 
