@@ -4,6 +4,10 @@ from django.urls import reverse
 from django.utils.html import format_html
 import django_tables2 as tables
 
+from app import (
+    LINK_TO_REPORT_EVENTS,
+    LINK_TO_RECOUPS,
+)
 from .models import (
     Contract,
     Installment,
@@ -76,6 +80,16 @@ class ContractsTable(tables.Table):
             '<a href="{}"><i class="fas fa-list"></i></a>'.format(reverse('installments-create', args=(value.id,))),
         )
 
+    def render_event_id(self, value):
+        link = LINK_TO_REPORT_EVENTS.format(value)
+        return format_html(
+            '<a href="{}">{}</a>'.format(link, value))
+
+    def render_user_id(self, value):
+        link = LINK_TO_RECOUPS
+        return format_html(
+            '<a href="{}">{}</a>'.format(link, value))
+
 
 class FetchSalesForceCasesTable(tables.Table):
     case_number = tables.Column()
@@ -88,6 +102,12 @@ class FetchSalesForceCasesTable(tables.Table):
 
     class Meta:
         template_name = "django_tables2/bootstrap.html"
+
+    def render_case_id(self, value):
+        link_to_salesforce_case = self.data.data[0]['link_to_salesforce_case']
+        return format_html(
+            '''<a href="{}">{}</a>'''.format(link_to_salesforce_case, value)
+        )
 
     def render_save(self, value):
         return format_html(

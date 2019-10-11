@@ -24,6 +24,7 @@ urlpatterns = [
         views.ToggleConditionView.as_view(),
         name='toggle-condition',
     ),
+    url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
     url(r'^', RedirectView.as_view(url='/contracts/'), name='redirect-url'),
 ]

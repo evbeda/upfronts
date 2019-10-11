@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% load static %}
+{% bootstrap_css %}
+{% block title %} Installments {% endblock title %}
+{% block content %}
+<html>
+  <head>
+    <link rel="stylesheet" href="{% static 'css/installment_table.css' %}">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.0/css/all.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+  </head>
+  <body>
+    <div class="p-3">
+      <div class="m-2">
+        <h1>Installments</h1>
+        <div class="mt-4">
+          {% if filter %}
+            <form action="" method="get" class="form form-inline">
+              {% bootstrap_form filter.form layout='inline' %}
+              {% bootstrap_button '<i class="fab fa-sistrix"></i>' %}
+
+            </form>
+          {% endif %}
+        </div>
+      </div>
+      <div class="container-fluid fixtable mt-5">
+    {% if installment_list %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col-sm">Organizer account</th>
+            <th scope="col-sm">Organizer email</th>
+            <th scope="col-sm">Signed date</th>
+            <th scope="col-sm">Is recoup</th>
+            <th scope="col-sm">Status</th>
+            <th scope="col-sm">Upfront projection</th>
+            <th scope="col-sm">Maximum payment date</th>
+            <th scope="col-sm">Payment date</th>
+            <th scope="col-sm">Recoup amount</th>
+            <th scope="col-sm">Gtf</th>
+            <th scope="col-sm">Gts</th>
+            <th scope="col-sm">Edit</th>
+            <th scope="col-sm">Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for installment in installment_list %}
+          <tr>
+            <td>{{installment.contract.organizer_account_name}}</td>
+            <td>{{installment.contract.organizer_email}}</td>
+            <td>{{installment.contract.signed_date}}</td>
+            <td>{{installment.is_recoup}}</td>
+            <td>{{installment.status}}</td>
+            <td>{{installment.upfront_projection}}</td>
+            <td>{{installment.maximum_payment_date}}</td>
+            <td>{{installment.payment_date}}</td>
+            <td>{{installment.recoup_amount}}</td>
+            <td>{{installment.gtf}}</td>
+            <td>{{installment.gts}}</td>
+            <td><a><i class="far fa-edit"></i></a></td>
+            <td><a><i class="fas fa-trash-alt"></i></a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="lead m-5 "> No installment was found.</p>
+    {% endif %}
+    <div class="float-right ml-2" >
+      <div class="dropdown">
+          <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown">
+              Export to
+          </button>
+          <div class="dropdown-menu dropdown-menu-right">
+<!--              <a class="dropdown-item" href="{% url 'download_csv'%}"><i class="fas fa-file-csv"></i> CSV</a>-->
+              <a class="dropdown-item" href="{{url}}&download=true"><i class="fas fa-file-csv"></i> CSV</a>
+              <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
+          </div>
+      </div>
+    </div>
+    <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-primary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
+    </div>
+    <script>
+      $( function() {
+        $( "#datepicker_signed_date" ).datepicker();
+        $( "#datepicker_max_payment_date" ).datepicker();
+        $( "#datepicker_payment_date" ).datepicker();
+      } );
+    </script>
+  </body>
+</html>
+{% endblock content %}

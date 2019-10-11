@@ -11,11 +11,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
+    ListView,
     UpdateView,
     TemplateView,
 )
 from django_filters import (
     CharFilter,
+    ChoiceFilter,
     DateFilter,
     FilterSet,
 )
@@ -23,7 +25,17 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
 
-from app.models import Contract, Installment, InstallmentCondition
+from app import (
+    LINK_TO_RECOUPS,
+    LINK_TO_REPORT_EVENTS,
+    LINK_TO_SEARCH_EVENT_OR_USER,
+    STATUS,
+)
+from app.models import (
+    Contract,
+    Installment,
+    InstallmentCondition,
+)
 from app.tables import (
     ContractsTable,
     FetchSalesForceCasesTable,
@@ -73,6 +85,12 @@ class ContractUpdate(UpdateView):
     fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
     success_url = reverse_lazy('contracts')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
+            email_organizer=context['object'].organizer_email)
+        return context
+
 
 class ContractsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
     queryset = Contract.objects.all()
@@ -104,6 +122,8 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context = super().get_context_data(**kwargs)
         contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
         context['contract'] = contract
+        context['link_to_recoup'] = LINK_TO_RECOUPS
+        context['link_to_event'] = LINK_TO_REPORT_EVENTS.format(contract.event_id)
         return context
 
     def get_success_url(self):
@@ -171,6 +191,7 @@ class SaveCaseView(View):
             case_number=case_data['CaseNumber'],
             salesforce_id=contract_id,
             salesforce_case_id=case_id,
+            link_to_salesforce_case=case_data['Case_URL__c'],
         )
         return redirect('installments-create', contract.id)
 
@@ -208,3 +229,120 @@ class ToggleConditionView(View):
         condition = InstallmentCondition.objects.get(pk=condition_id)
         condition.toggle_done()
         return redirect('conditions', contract_id, installment_id)
+
+
+class InstallmentsFilter(FilterSet):
+    search_organizer = CharFilter(
+        label='Search organizer',
+        method='search_contract_organizer',
+        lookup_expr='icontains',
+    )
+    djfdate_time_signed_date = DateFilter(
+        label='Signed date',
+        method='search_contract_signed_date',
+        lookup_expr='icontains',
+        widget=DateInput(
+            attrs={
+                'id': 'datepicker_signed_date',
+                'type': 'text',
+            },
+        ),
+    )
+    djfdate_time_max_payment_date = DateFilter(
+        label='Max payment date',
+        method='search_maximum_payment_date',
+        lookup_expr='icontains',
+        widget=DateInput(
+            attrs={
+                'id': 'datepicker_max_payment_date',
+                'type': 'text',
+            },
+        ),
+    )
+    djfdate_ttime_payment_date = DateFilter(
+        label='Payment date',
+        method='search_payment_date',
+        lookup_expr='icontains',
+        widget=DateInput(
+            attrs={
+                'id': 'datepicker_payment_date',
+                'type': 'text',
+            },
+        ),
+    )
+    status = ChoiceFilter(
+        choices=STATUS,
+        # initial='COMMITED/APPROVED',
+        # label='Status',
+        empty_label='Status options',
+        method='search_status',
+        lookup_expr='icontains',
+    )
+
+    def search_payment_date(self, qs, name, value):
+        return qs.filter(
+            Q(payment_date=value)
+        )
+
+    def search_maximum_payment_date(self, qs, name, value):
+        return qs.filter(
+            Q(maximum_payment_date=value)
+        )
+
+    def search_status(self, qs, name, value):
+        return qs.filter(
+            Q(status__icontains=value)
+        )
+
+    def search_contract_signed_date(self, qs, name, value):
+        return qs.filter(
+            Q(contract__signed_date__icontains=value)
+        )
+
+    def search_contract_organizer(self, qs, name, value):
+        return qs.filter(
+            Q(contract__organizer_account_name__icontains=value) |
+            Q(contract__organizer_email__icontains=value)
+        )
+
+    class Meta:
+        model = Installment
+        fields = ('search_organizer',)
+
+
+class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
+    model = Installment
+    template_name = "app/all-installments.html"
+    filterset_class = InstallmentsFilter
+
+    def get(self, request, *args, **kwargs):
+        filtered_response = super().get(request, *args, **kwargs)
+        if 'download' in filtered_response.context_data['url']:
+            response = HttpResponse(content_type='text/csv')
+            filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+            installments = filtered_response.context_data['installment_list']
+            writer = csv.writer(response)
+            for installment in installments:
+                writer.writerow([
+                    installment.is_recoup,
+                    installment.status,
+                    installment.contract.organizer_account_name,
+                    installment.upfront_projection,
+                    installment.contract.organizer_email,
+                    installment.contract.signed_date,
+                    installment.contract.signed_date,
+                    installment.upfront_projection,
+                    installment.maximum_payment_date,
+                    installment.payment_date,
+                    installment.recoup_amount,
+                    installment.gts,
+                    installment.gtf,
+                ])
+            return response
+        return filtered_response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['url'] = self.request.get_full_path()
+        return context
