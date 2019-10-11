@@ -35,7 +35,10 @@ from app.models import (
     Installment,
     InstallmentCondition,
 )
-from app.utils import fetch_cases
+from app.utils import (
+    fetch_cases,
+    fetch_cases_by_date,
+)
 
 
 class ModelTest(TestCase):
@@ -373,6 +376,49 @@ class FetchCaseTests(TestCase):
         with patch.object(Salesforce, '__init__', return_value=None), \
                 patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
             result = fetch_cases(','.join(case_numbers))
+        for elem in result:
+            self.assertIn(elem['case_number'], case_numbers)
+
+    def test_fetch_cases_by_date(self):
+        FAKE_SF_QUERY_RESPONSES = (
+            {
+                'records': [
+                    {
+                        'Id': 'FAKE_CASE_ID_1',
+                        'CaseNumber': 'FAKE_CASE_NUMBER_1',
+                        'Contract__c': 'FAKE_CONTRACT_ID_1',
+                        'Description': 'FAKE_DESCRIPTION_1',
+                    },
+                    {
+                        'Id': 'FAKE_CASE_ID_2',
+                        'CaseNumber': 'FAKE_CASE_NUMBER_2',
+                        'Contract__c': 'FAKE_CONTRACT_ID_2',
+                        'Description': 'FAKE_DESCRIPTION_2',
+                    },
+                 ]
+            },
+            {
+                'records': [
+                    {
+                        'Id': 'FAKE_CONTRACT_ID_1',
+                        'Eventbrite_Username__c': 'FAKE_EVENTBRITE_USERNAME_1',
+                        'Hoopla_Account_Name__c': 'FAKE_ACCOUNT_NAME_1',
+                        'ActivatedDate': 'FAKE_SIGNED_DATE_1',
+                    },
+                    {
+                        'Id': 'FAKE_CONTRACT_ID_2',
+                        'Eventbrite_Username__c': 'FAKE_EVENTBRITE_USERNAME_2',
+                        'Hoopla_Account_Name__c': 'FAKE_ACCOUNT_NAME_2',
+                        'ActivatedDate': 'FAKE_SIGNED_DATE_2',
+                    },
+                ]
+            },
+        )
+        dates_from_to = ['FAKE_SIGNED_DATE_FROM_1', 'FAKE_SIGNED_DATE_TO_1']
+        case_numbers = ['FAKE_CASE_NUMBER_1', 'FAKE_CASE_NUMBER_2']
+        with patch.object(Salesforce, '__init__', return_value=None), \
+                patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
+            result = fetch_cases_by_date(dates_from_to[0], dates_from_to[1])
         for elem in result:
             self.assertIn(elem['case_number'], case_numbers)
 
