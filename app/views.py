@@ -33,7 +33,8 @@ from app import (
 )
 from app.models import (
     Contract,
-    Installment
+    Installment,
+    InstallmentCondition,
 )
 from app.tables import (
     ContractsTable,
@@ -222,6 +223,41 @@ class SaveCaseView(View):
             link_to_salesforce_case=case_data['Case_URL__c'],
         )
         return redirect('installments-create', contract.id)
+
+
+class ConditionView(LoginRequiredMixin, CreateView):
+    template_name = "app/create_condition.html"
+    model = InstallmentCondition
+    fields = [
+        'id',
+        'condition_name',
+    ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        installment = Installment.objects.filter(id=self.kwargs['installment_id']).get()
+        context['installment'] = installment
+        context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('conditions', kwargs=self.kwargs)
+
+    def form_valid(self, form, **kwargs):
+        form.instance.installment_id = self.kwargs['installment_id']
+        self.object = form.save()
+        return super(ConditionView, self).form_valid(form)
+
+
+class ToggleConditionView(View):
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+
+        condition_id = self.kwargs.get('condition_id')
+        condition = InstallmentCondition.objects.get(pk=condition_id)
+        condition.toggle_done()
+        return redirect('conditions', contract_id, installment_id)
 
 
 class InstallmentsFilter(FilterSet):

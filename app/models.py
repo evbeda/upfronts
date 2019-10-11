@@ -2,7 +2,6 @@ import datetime
 from django.db import models
 
 from . import (
-    INSTALLMENT_CONDITIONS,
     STATUS,
 )
 
@@ -43,11 +42,16 @@ class Installment(models.Model):
     def edit(self):
         return self
 
+    @property
+    def conditions(self):
+        return self
+
 
 class InstallmentCondition(models.Model):
-    condition_name = models.CharField(max_length=80, choices=INSTALLMENT_CONDITIONS)
+    condition_name = models.CharField(max_length=80)
     installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
     done = models.DateTimeField(blank=True, null=True)
 
-    def mark_as_done(self):
-        self.done = datetime.datetime.now()
+    def toggle_done(self):
+        self.done = None if self.done else datetime.datetime.now()
+        self.save()

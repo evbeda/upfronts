@@ -20,17 +20,18 @@ from . import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
     INVALID_RECOUP_AMOUNT,
-    INSTALLMENT_CONDITIONS,
     STATUS,
 )
 from app.views import (
     AllInstallmentsView,
+    ConditionView,
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
     InstallmentsFilter,
     InstallmentView,
     SaveCaseView,
+    ToggleConditionView,
 )
 from app.models import (
     Contract,
@@ -138,14 +139,15 @@ class ContractTest(TestCase):
 class InstallmentConditionTest(TestCase):
 
     def setUp(self):
+        self.factory = RequestFactory()
         contract_data = {
             'organizer_account_name': 'Planner Eventos',
             'organizer_email': 'pepe@planner.com',
             'signed_date': '2019-09-14',
         }
-        contract = Contract.objects.create(**contract_data)
+        self.contract = Contract.objects.create(**contract_data)
         installment_data = {
-            'contract': contract,
+            'contract': self.contract,
             'is_recoup': False,
             'status': 'PENDING',
             'upfront_projection': 9000,
@@ -159,28 +161,15 @@ class InstallmentConditionTest(TestCase):
 
     def test_create_valid_installment_condition(self):
         installment_condition_data = {
-            'condition_name': INSTALLMENT_CONDITIONS[1][0],
+            'condition_name': 'TEST_CONDITION_NAME',
             'installment': self.installment,
         }
         installment_condition = InstallmentCondition(**installment_condition_data)
         installment_condition.full_clean()
 
-    def test_create_invalid_installment_condition(self):
-        installment_condition_data = {
-            'condition_name': 'INVALID CONDITION',
-            'installment': self.installment,
-        }
-        expected_response = {
-            'condition_name': ["Value 'INVALID CONDITION' is not a valid choice."],
-        }
-        installment_condition = InstallmentCondition(**installment_condition_data)
-        with self.assertRaises(ValidationError) as cm:
-            installment_condition.full_clean()
-        self.assertEqual(expected_response, cm.exception.message_dict)
-
     def test_create_installment_condition_without_installment(self):
         installment_condition_data = {
-            'condition_name': INSTALLMENT_CONDITIONS[1][0],
+            'condition_name': 'TEST_CONDITION_NAME',
         }
         expected_response = {
             'installment': ['This field cannot be null.'],
@@ -190,7 +179,7 @@ class InstallmentConditionTest(TestCase):
             installment_condition.full_clean()
         self.assertEqual(expected_response, cm.exception.message_dict)
 
-    def test_mark_condition_as_done(self):
+    def test_toggle_condition_method(self):
         FREEZED_TIME = datetime.datetime(year=2019, month=8, day=20, hour=16, minute=30)
         condition_data = {
             'condition_name': 'TEST_CONDITION_NAME',
@@ -199,8 +188,47 @@ class InstallmentConditionTest(TestCase):
         condition = InstallmentCondition.objects.create(**condition_data)
         self.assertEqual(condition.done, None)
         with freeze_time(FREEZED_TIME):
-            condition.mark_as_done()
+            condition.toggle_done()
         self.assertEqual(condition.done, FREEZED_TIME)
+        condition.toggle_done()
+        self.assertIsNone(condition.done)
+
+    def test_condition_view(self):
+        TEST_CONDITION_NAME = 'TEST_CONDITION_NAME'
+        installment_condition_data = {
+            'condition_name': TEST_CONDITION_NAME,
+            'installment': self.installment,
+        }
+        InstallmentCondition.objects.create(**installment_condition_data)
+        kwargs = {
+            'contract_id': self.contract.id,
+            'installment_id': self.installment.id,
+        }
+        request = self.factory.get(reverse('conditions', kwargs=kwargs))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = ConditionView.as_view()(request, **kwargs)
+        content = response.render().content
+        self.assertIn(bytes(TEST_CONDITION_NAME, encoding='utf-8'), content)
+
+    def test_toggle_condition_view(self):
+        installment_condition_data = {
+            'condition_name': 'TEST_CONDITION_NAME',
+            'installment': self.installment,
+        }
+        installment_condition = InstallmentCondition.objects.create(**installment_condition_data)
+        self.assertEqual(installment_condition.done, None)
+        kwargs = {
+            'contract_id': self.contract.id,
+            'installment_id': self.installment.id,
+            'condition_id': installment_condition.id,
+        }
+        request = self.factory.post(reverse('toggle-condition', kwargs=kwargs))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        ToggleConditionView.as_view()(request, **kwargs)
+        installment_condition.refresh_from_db()
+        self.assertNotEqual(installment_condition.done, None)
 
 
 class RedirectTest(TestCase):
@@ -260,7 +288,7 @@ class TableTest(TestCase):
         }
         self.installment = Installment.objects.create(**installment_data)
         installment_condition_data = {
-            'condition_name': INSTALLMENT_CONDITIONS[1][0],
+            'condition_name': 'TEST_CONDITION_NAME',
             'installment': self.installment,
         }
         self.installment_condition = InstallmentCondition.objects.create(**installment_condition_data)

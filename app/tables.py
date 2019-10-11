@@ -16,6 +16,7 @@ from .models import (
 
 class InstallmentsTable(tables.Table):
     edit = tables.Column()
+    conditions = tables.Column()
 
     class Meta:
         model = Installment
@@ -34,14 +35,17 @@ class InstallmentsTable(tables.Table):
         return '${:0.2f}'.format(value)
 
     def render_edit(self, value):
-        return format_html(
-            '<a href="{}"><i class="far fa-edit"></i></a>'.format(reverse(
-                'contracts-update', args=(value.contract_id,))
-            )
-        )
+        return format_html('<a href="#"><i class="far fa-edit"></i></a>')
 
     def render_recoup_amount(self, value):
         return '${:0.2f}'.format(value)
+
+    def render_conditions(self, value):
+        return format_html(
+            '<a href="{}"><i class="fas fa-list"></i></a>'.format(reverse(
+                'conditions', args=(value.contract_id, value.id))
+            )
+        )
 
 
 class ContractsTable(tables.Table):

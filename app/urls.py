@@ -13,6 +13,17 @@ urlpatterns = [
         views.InstallmentView.as_view(),
         name='installments-create',
     ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)/conditions/$',
+        views.ConditionView.as_view(),
+        name='conditions',
+    ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
+        '/conditions/(?P<condition_id>[0-9]+)/toggle/$',
+        views.ToggleConditionView.as_view(),
+        name='toggle-condition',
+    ),
     url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
     url(r'^', RedirectView.as_view(url='/contracts/'), name='redirect-url'),
