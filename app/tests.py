@@ -51,6 +51,7 @@ class ModelTest(TestCase):
             'case_number': '345978',
             'salesforce_id': '23465789',
             'salesforce_case_id': '4680990',
+            'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
         }
         contract = Contract(**contract_data)
         contract.full_clean()
@@ -68,6 +69,7 @@ class ModelTest(TestCase):
         }
 
         expected_error_dict_messages = {
+            'link_to_salesforce_case': ['This field cannot be blank.'],
             'organizer_account_name': ['This field cannot be blank.'],
             'organizer_email': ['Enter a valid email address.'],
             'signed_date': [
@@ -384,12 +386,14 @@ class FetchCaseTests(TestCase):
                         'CaseNumber': 'FAKE_CASE_NUMBER_1',
                         'Contract__c': 'FAKE_CONTRACT_ID_1',
                         'Description': 'FAKE_DESCRIPTION_1',
+                        'Case_URL__c': 'https://pe33.zzxxzzz.com/5348fObs',
                     },
                     {
                         'Id': 'FAKE_CASE_ID_2',
                         'CaseNumber': 'FAKE_CASE_NUMBER_2',
                         'Contract__c': 'FAKE_CONTRACT_ID_2',
                         'Description': 'FAKE_DESCRIPTION_2',
+                        'Case_URL__c': 'https://pe33.zzxxzzz.com/5348fObs',
                     },
                  ]
             },
@@ -435,6 +439,7 @@ class AddContractTests(TestCase):
                 'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_1',
                 'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_1',
                 'signed_date': '2019-02-08T21:26:13.000+0000',
+                'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
             },
             {
                 'case_number': FAKE_CASE_NUMBERS[1],
@@ -443,6 +448,7 @@ class AddContractTests(TestCase):
                 'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_2',
                 'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_2',
                 'signed_date': '2019-02-08T21:26:13.000+0000',
+                'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
             },
         ]
         with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
@@ -464,6 +470,7 @@ class AddContractTests(TestCase):
             'CaseNumber': "FAKE_CASE_NUMBER",
             'Description': "FAKE_CASE_DESCRIPTION",
             'Contract__c': FAKE_CONTRACT_ID,
+            'Case_URL__c': 'https://pe33.zzxxzzz.com/5348fObs',
         }
         FAKE_CONTRACT_RETURN = {
             'Hoopla_Account_Name__c': 'FAKE_ORGANIZER_NAME',
