@@ -123,6 +123,18 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context['contract'] = contract
         context['link_to_recoup'] = LINK_TO_RECOUPS
         context['link_to_event'] = LINK_TO_REPORT_EVENTS.format(contract.event_id)
+        context['form'].fields['maximum_payment_date'].widget=DateInput(
+            attrs={
+                'id': 'datepicker_maximum_payment_date',
+                'type': 'text',
+            },
+        )
+        context['form'].fields['payment_date'].widget=DateInput(
+            attrs={
+                'id': 'datepicker_payment_date',
+                'type': 'text',
+            },
+        )
         return context
 
     def get_success_url(self):
