@@ -33,15 +33,28 @@
                       </div >
                     </div>
             </div>
-            <table class="table">
+            <table class="table container">
               <tr>
                 <th>Condition name</th>
-                <th> </th>
+                <th>Date modified</th>
+                <th>Actions</th>
               </tr>
               {% for object in object_list %}
               <tr>
                 <td>{{ object.condition_name }}</td>
-                <td></td>
+                <td>{% if object.done %}{{ object.done }} {% endif %}</td>
+                <td>
+                  <form action="{% url 'toggle-condition' installment.contract_id installment.id object.id %}" method="POST">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-primary" type="submit">
+                        {% if object.done %} 
+                          Undo
+                        {% else %} 
+                          Mark as Done
+                        {% endif %}
+                      </button>
+                  </form> 
+                </td>
               </tr>
               {% endfor %}
             </table>
@@ -65,7 +78,7 @@
                 </div>
             </div>
         <div class="float-left">
-            <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-primary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
+            <a href="{% url 'installments-create' installment.contract_id %}" role="button" class="btn btn-outline-primary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
         </div>
         </div>
     </body>

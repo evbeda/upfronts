@@ -51,5 +51,6 @@ class InstallmentCondition(models.Model):
     installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
     done = models.DateTimeField(blank=True, null=True)
 
-    def mark_as_done(self):
-        self.done = datetime.datetime.now()
+    def toggle_done(self):
+        self.done = None if self.done else datetime.datetime.now()
+        self.save()

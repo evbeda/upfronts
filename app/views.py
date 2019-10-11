@@ -197,3 +197,14 @@ class ConditionView(LoginRequiredMixin, CreateView):
         form.instance.installment_id = self.kwargs['installment_id']
         self.object = form.save()
         return super(ConditionView, self).form_valid(form)
+
+
+class ToggleConditionView(View):
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+
+        condition_id = self.kwargs.get('condition_id')
+        condition = InstallmentCondition.objects.get(pk=condition_id)
+        condition.toggle_done()
+        return redirect('conditions', contract_id, installment_id)

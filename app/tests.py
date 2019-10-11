@@ -31,6 +31,7 @@ from app.views import (
     download_csv,
     InstallmentView,
     SaveCaseView,
+    ToggleConditionView,
 )
 from app.models import (
     Contract,
@@ -133,6 +134,7 @@ class ContractTest(TestCase):
 class InstallmentConditionTest(TestCase):
 
     def setUp(self):
+        self.factory = RequestFactory()
         contract_data = {
             'organizer_account_name': 'Planner Eventos',
             'organizer_email': 'pepe@planner.com',
@@ -172,7 +174,7 @@ class InstallmentConditionTest(TestCase):
             installment_condition.full_clean()
         self.assertEqual(expected_response, cm.exception.message_dict)
 
-    def test_mark_condition_as_done(self):
+    def test_toggle_condition_method(self):
         FREEZED_TIME = datetime.datetime(year=2019, month=8, day=20, hour=16, minute=30)
         condition_data = {
             'condition_name': 'TEST_CONDITION_NAME',
@@ -181,27 +183,47 @@ class InstallmentConditionTest(TestCase):
         condition = InstallmentCondition.objects.create(**condition_data)
         self.assertEqual(condition.done, None)
         with freeze_time(FREEZED_TIME):
-            condition.mark_as_done()
+            condition.toggle_done()
         self.assertEqual(condition.done, FREEZED_TIME)
+        condition.toggle_done()
+        self.assertIsNone(condition.done)
 
     def test_condition_view(self):
         TEST_CONDITION_NAME = 'TEST_CONDITION_NAME'
-        factory = RequestFactory()
         installment_condition_data = {
             'condition_name': TEST_CONDITION_NAME,
             'installment': self.installment,
         }
-        self.installment_condition = InstallmentCondition.objects.create(**installment_condition_data)
+        InstallmentCondition.objects.create(**installment_condition_data)
         kwargs = {
             'contract_id': self.contract.id,
             'installment_id': self.installment.id,
         }
-        request = factory.get(reverse('conditions', kwargs=kwargs))
+        request = self.factory.get(reverse('conditions', kwargs=kwargs))
         request.user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
         response = ConditionView.as_view()(request, **kwargs)
         content = response.render().content
         self.assertIn(bytes(TEST_CONDITION_NAME, encoding='utf-8'), content)
+
+    def test_toggle_condition_view(self):
+        installment_condition_data = {
+            'condition_name': 'TEST_CONDITION_NAME',
+            'installment': self.installment,
+        }
+        installment_condition = InstallmentCondition.objects.create(**installment_condition_data)
+        self.assertEqual(installment_condition.done, None)
+        kwargs = {
+            'contract_id': self.contract.id,
+            'installment_id': self.installment.id,
+            'condition_id': installment_condition.id,
+        }
+        request = self.factory.post(reverse('toggle-condition', kwargs=kwargs))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        ToggleConditionView.as_view()(request, **kwargs)
+        installment_condition.refresh_from_db()
+        self.assertNotEqual(installment_condition.done, None)
 
 
 class RedirectTest(TestCase):
