@@ -22,22 +22,29 @@
     </head>
     <body>
         <div class='p-3'>
+            {% if message %}
+                <br>
+                <div class="alert alert-danger" role="alert">
+                    {{message}}
+                </div>
+            {% endif %}
             <div>
                 <div class="m-2">
                     <h1>Search cases</h1>
                 </div>
                 
                 <div>
-                    <div class="row">
                     <form action="">
-                        <input class="mr-sm-2" type="text" placeholder="Enter case numbers" name="case_numbers">
-                        <button type="submit" class="btn btn-primary datep"><i class="fab fa-sistrix"></i></button>
+                        <div class="row">
+                            <input class="mr-sm-2" type="text" placeholder="Enter case numbers" name="case_numbers">
+                            <input id="datepicker_from" width="276" placeholder="From" name="case_date_from">
+                            <input id="datepicker_to" width="276" placeholder="To" name="case_date_to">
+                            <button type="submit" class="btn btn-primary datep"><i class="fab fa-sistrix"></i></button>
+                        </div>
                     </form>
-                    <!-- <input id="datepicker_from" width="276" placeholder="From">
-                        <input class="datep" id="datepicker_to" width="276" placeholder="To"> -->
-                    </div>
                 </div>
                     {% if table %}
+                    <br>
                     {% render_table table %}
                     {% endif %}
                     
@@ -48,12 +55,12 @@
         </div>        
         <script>
             $('#datepicker_from').datepicker({
-                uiLibrary: 'bootstrap4'
+                uiLibrary: 'bootstrap4',
             });
         </script>
         <script>
             $('#datepicker_to').datepicker({
-                uiLibrary: 'bootstrap4'
+                uiLibrary: 'bootstrap4',
             });
         </script>
     </body>
