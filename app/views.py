@@ -42,6 +42,7 @@ from app.tables import (
 )
 from app.utils import (
     fetch_cases,
+    fetch_cases_by_date,
     get_case_by_id,
     get_contract_by_id,
 )
@@ -166,11 +167,27 @@ class ContractAdd(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         case_numbers = self.request.GET.get('case_numbers') or self.kwargs.get('case_numbers')
+        date_from = self.request.GET.get('case_date_from')
+        date_to = self.request.GET.get('case_date_to')
+        contract_data = []
+        if date_from or date_to:
+            try:
+                date_from_formated = '{2}-{0}-{1}T00:00:00.000+0000'.format(*date_from.split('/'))
+                date_to_formated = '{2}-{0}-{1}T23:59:59.000+0000'.format(*date_to.split('/'))
+                contract_data = fetch_cases_by_date(date_from_formated, date_to_formated)
+                for elem in contract_data:
+                    elem['save'] = elem['case_id']
+                    context["table"] = FetchSalesForceCasesTable(contract_data)
+            except Exception:
+                context["message"] = "Please enter both dates"
         if case_numbers:
-            contract_data = fetch_cases(case_numbers)
-            for elem in contract_data:
-                elem['save'] = elem['case_id']
-            context["table"] = FetchSalesForceCasesTable(contract_data)
+            try:
+                contract_data = fetch_cases(case_numbers)
+                for elem in contract_data:
+                    elem['save'] = elem['case_id']
+                context['table'] = FetchSalesForceCasesTable(contract_data)
+            except Exception:
+                context["message"] = "This case number: '{}' doesn't exist".format(case_numbers)
         return context
 
 
