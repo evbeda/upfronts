@@ -19,4 +19,4 @@ LINK_TO_REPORT_EVENTS = "https://www.evbqa.com/myevent/{}/reports/attendee/"
 LINK_TO_RECOUPS = "https://admin.eventbrite.com/admin/upfront_recoups/manage"
 LINK_TO_SEARCH_EVENT_OR_USER = "https://admin.eventbrite.com/admin/search/?search_type=&search_query={email_organizer}"
 
-BASIC_CONDITIONS = ['Promissory Note', 'Bank Details', 'Payment Date', 'Funds Available']
+BASIC_CONDITIONS = ('Promissory Note', 'Bank Details', 'Payment Date', 'Funds Available')
