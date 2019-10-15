@@ -26,6 +26,7 @@ from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
 
 from app import (
+    BASIC_CONDITIONS,
     LINK_TO_RECOUPS,
     LINK_TO_REPORT_EVENTS,
     LINK_TO_SEARCH_EVENT_OR_USER,
@@ -145,6 +146,11 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
     def form_valid(self, form, **kwargs):
         form.instance.contract_id = self.kwargs['contract_id']
         self.object = form.save()
+        for condition in BASIC_CONDITIONS:
+            InstallmentCondition.objects.create(
+                installment=self.object,
+                condition_name=condition,
+            )
         return super(InstallmentView, self).form_valid(form)
 
 

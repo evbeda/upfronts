@@ -1,9 +1,11 @@
-import factory
-from . import models
+from factory import DjangoModelFactory
+
 from django.utils import timezone
 
+from . import models
 
-class ContractFactory(factory.django.DjangoModelFactory):
+
+class ContractFactory(DjangoModelFactory):
     class Meta:
         model = models.Contract
 

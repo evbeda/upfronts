@@ -571,7 +571,7 @@ class AddContractTests(TestCase):
         kwargs = {
             'case_numbers': contract.case_number
         }
-        request = self.factory.get(reverse('contracts-add'), kwargs=kwargs)
+        request = self.factory.get(reverse('contracts-add'))
         FAKE_FETCH_DATA = [
             {
                 'case_number': "428967",
@@ -586,7 +586,7 @@ class AddContractTests(TestCase):
         with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
             response = ContractAdd.as_view()(request, **kwargs)
         response = response.render().content
-        self.assertIn(bytes("This contract already exist.", encoding='utf-8'), response)
+        self.assertIn(bytes("This contract already exists.", encoding='utf-8'), response)
 
 
 class InstallmentTest(TestCase):
