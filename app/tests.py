@@ -16,6 +16,7 @@ from django.urls import reverse
 from freezegun import freeze_time
 from simple_salesforce import Salesforce
 
+from app.factories import ContractFactory
 from . import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
@@ -246,16 +247,19 @@ class FilterTest(TestCase):
             organizer_account_name='EDA',
             organizer_email='test@test.com',
             signed_date='2019-03-20',
+            case_number='633457357',
         )
         contract2 = Contract.objects.create(
             organizer_account_name='NOT_AN_INTERESTING_NAME',
             organizer_email='test@test.com',
             signed_date='2019-03-15',
+            case_number='984534089',
         )
         contract3 = Contract.objects.create(
             organizer_account_name='NOT_AN_INTERESTING_NAME',
             organizer_email='test@eda.com',
             signed_date='2019-03-15',
+            case_number='53498985fh2',
         )
         qs = Contract.objects.all()
         f = ContractsFilter()
@@ -561,6 +565,28 @@ class AddContractTests(TestCase):
         self.assertEqual(response.status_code, 302)
         contract = Contract.objects.first()
         self.assertEqual(contract.case_number, FAKE_CASE_RETURN['CaseNumber'])
+
+    def test_get_case_already_persisted(self):
+        contract = ContractFactory.create()
+        kwargs = {
+            'case_numbers': contract.case_number
+        }
+        request = self.factory.get(reverse('contracts-add'))
+        FAKE_FETCH_DATA = [
+            {
+                'case_number': "428967",
+                'case_id': contract.salesforce_case_id,
+                'contract_id': 'FAKE_CASE_CONTRACT_ID_1',
+                'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_1',
+                'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_1',
+                'signed_date': '2019-02-08T21:26:13.000+0000',
+                'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
+            },
+        ]
+        with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
+            response = ContractAdd.as_view()(request, **kwargs)
+        response = response.render().content
+        self.assertIn(bytes("This contract already exists.", encoding='utf-8'), response)
 
 
 class InstallmentTest(TestCase):
