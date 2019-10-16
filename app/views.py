@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     CreateView,
     ListView,
@@ -381,3 +381,23 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
         context = super().get_context_data(**kwargs)
         context['url'] = self.request.get_full_path()
         return context
+
+
+class InstallmentUpdate(UpdateView):
+    model = Installment
+    fields = (
+        'is_recoup',
+        'status',
+        'upfront_projection',
+        'maximum_payment_date',
+        'payment_date',
+        'recoup_amount',
+        'gtf',
+        'gts'
+    )
+    template_name = "app/update_installment.html"
+    def get_success_url(self):
+        import ipdb;
+        ipdb.set_trace()
+        return reverse_lazy('installments-create', kwargs={'contract_id': self.kwargs['contract_id']})
+
