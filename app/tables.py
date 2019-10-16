@@ -110,6 +110,10 @@ class FetchSalesForceCasesTable(tables.Table):
         )
 
     def render_save(self, value):
+        if Contract.objects.filter(salesforce_case_id=value).first():
+            return format_html(
+                '<p>This contract already exists.</p>'
+            )
         return format_html(
             '''<form method="POST" action="{}">
                 <button type="submit" class="btn btn-link"><i class="far fa-save fa-lg"></i></button>
