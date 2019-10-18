@@ -1,4 +1,7 @@
-from factory import DjangoModelFactory
+from factory import (
+    DjangoModelFactory,
+    SubFactory,
+)
 
 from django.utils import timezone
 
@@ -17,3 +20,18 @@ class ContractFactory(DjangoModelFactory):
     salesforce_id = '7908235'
     salesforce_case_id = '5324789dsh39'
     link_to_salesforce_case = 'https://pe33.zzxxzzz.com/5348fObs'
+
+
+class InstallmentFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Installment
+
+    contract = SubFactory(ContractFactory)
+    is_recoup = False
+    status = 'PENDING'
+    upfront_projection = 98345
+    maximum_payment_date = '2019-09-14'
+    payment_date = '2019-09-14'
+    recoup_amount = 736372
+    gtf = 873456
+    gts = 346897

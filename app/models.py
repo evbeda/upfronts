@@ -43,6 +43,10 @@ class Installment(models.Model):
         return self
 
     @property
+    def delete(self):
+        return self
+
+    @property
     def conditions(self):
         return self
 

@@ -16,7 +16,10 @@ from django.urls import reverse
 from freezegun import freeze_time
 from simple_salesforce import Salesforce
 
-from app.factories import ContractFactory
+from app.factories import (
+    ContractFactory,
+    InstallmentFactory,
+)
 from . import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
@@ -29,7 +32,9 @@ from app.views import (
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
+    InstallmentDelete,
     InstallmentsFilter,
+    InstallmentUpdate,
     InstallmentView,
     SaveCaseView,
     ToggleConditionView,
@@ -619,6 +624,42 @@ class InstallmentTest(TestCase):
         response = InstallmentView.as_view()(request, **kwargs)
         content = response.render().content
         self.assertIn(bytes(contract_data['organizer_email'], encoding='utf-8'), content)
+
+    def test_update_installment(self):
+        factory = RequestFactory()
+        installment = InstallmentFactory()
+        installment_data = installment.__dict__
+        installment_data['is_recoup'] = True
+        installment_data['payment_date'] = datetime.date(2018, 3, 2)
+        installment_data['maximum_payment_date'] = datetime.date(2018, 7, 1)
+        installment_data['recoup_amount'] = 9999
+        kwargs = {
+            'contract_id': installment.contract_id,
+            'pk': installment.id,
+        }
+        request = factory.post(
+            reverse('installments-update', kwargs=kwargs),
+            installment_data,
+        )
+        InstallmentUpdate.as_view()(request, **kwargs)
+        installment_updated = Installment.objects.first()
+        self.assertEqual(installment_data['is_recoup'], installment_updated.is_recoup)
+        self.assertEqual(installment_data['payment_date'], installment_updated.payment_date)
+        self.assertEqual(installment_data['maximum_payment_date'], installment_updated.maximum_payment_date)
+        self.assertEqual(installment_data['recoup_amount'], installment_updated.recoup_amount)
+
+    def test_delete_installment(self):
+        factory = RequestFactory()
+        installment = InstallmentFactory()
+        kwargs = {
+            'contract_id': installment.contract_id,
+            'pk': installment.id,
+        }
+        request = factory.post(
+            reverse('installments-delete', kwargs=kwargs)
+        )
+        InstallmentDelete.as_view()(request, **kwargs)
+        self.assertEqual(None, Installment.objects.first())
 
 
 class AllInstallmentsViewTest(TestCase):
