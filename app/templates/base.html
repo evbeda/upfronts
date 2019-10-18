@@ -6,6 +6,7 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css\css.css' %}">
 <html lang="en">
 <head>
+  {% block head %}
   <link rel="stylesheet" href="../../static/css/uf_table.css">
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css">
@@ -15,6 +16,7 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  {% endblock head %}
   <meta charset="UTF-8">
   <title>{% block title %}{% endblock title %} - Upfronts</title>
 </head>
