@@ -1,6 +1,7 @@
 import csv
 import datetime
 import io
+from textwrap import dedent
 from unittest.mock import patch
 
 from django.contrib.auth.models import (
@@ -41,6 +42,7 @@ from app.models import (
 from app.utils import (
     fetch_cases,
     fetch_cases_by_date,
+    generate_presto_query,
 )
 
 
@@ -689,3 +691,58 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_maximum_payment_date)
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
+
+
+class PrestoQueriesTest(TestCase):
+    def test_generate_presto_query(self):
+        event_id = '1234'
+        from_date = datetime.date(2019, 3, 8)
+        to_date = datetime.date(2019, 5, 8)
+        date_format = "%Y-%m-%d"
+        expected_query = dedent("""
+        select f.organizer_id, f.currency, u.email, e.name,
+        sum(f_gts_ntv) as f_gts_ntv,
+        sum(f_gtf_ntv) as f_gtf_ntv,
+        sum(f_tax_ntv) as f_tax_ntv,
+        sum(f_eb_tax_ntv) as f_eb_tax_ntv,
+        sum(f_epp_gts_ntv) as f_epp_gts_ntv
+        from hive.dw.f_ticket_merchandise_purchase f
+        join hive.eb.users u on u.id = f.organizer_id
+        join hive.eb.events e on e.id = f.event_id
+        where f.currency in ('BRL')
+        and is_valid = 'Y'
+        and trx_date > '{from_date}'
+        and trx_date < '{to_date}'
+        and f.event_id = {event_id}
+        group by 1,2,3,4
+        """).format(
+            from_date=from_date.strftime(date_format),
+            to_date=to_date.strftime(date_format),
+            event_id=event_id
+        )
+        result = generate_presto_query(event_id, from_date, to_date)
+
+        self.assertEqual(expected_query, result)
+
+    def test_ajax_presto_query_endpoint(self):
+        date_format = "%Y-%m-%d"
+        EVENT_ID = '1234'
+        FROM_DATE = '2019-10-24'
+        TO_DATE = '2019-11-24'
+        client = Client()
+        response = client.get(
+            reverse('superset_query'),
+            {
+                'event-id': EVENT_ID,
+                'from-date': FROM_DATE,
+                'to-date': TO_DATE,
+            }
+        )
+        self.assertEqual(
+            response.json()['query'],
+            generate_presto_query(
+                EVENT_ID,
+                datetime.datetime.strptime(FROM_DATE, date_format),
+                datetime.datetime.strptime(TO_DATE, date_format),
+            )
+        )

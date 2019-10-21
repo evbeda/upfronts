@@ -10,9 +10,7 @@
         <link rel="stylesheet" href="../../static/css/uf_table.css">
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.0/css/all.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet" type="text/css" />
     </head>
     <body>
         <div class='m-5 p-3'>
@@ -29,9 +27,23 @@
                           <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
                           <li class="m-2"> <b>GTF: </b> {{ installment.gtf }}</li>
                           <li class="m-2"> <b>GTS: </b> {{ installment.gts }}</li>
-                        </p>
                       </div >
                     </div>
+            </div>
+            <div class="container">
+              <div class="m-4">
+                <h4>Check GTS/GTF</h4>
+                <form action="">
+                  <label for="event-id">Event id:</label>
+                  <input id="event-id" name="event-id" class="mr-4" type="" placeholder="Event id" value="{{ installment.contract.event_id }}">
+                  <label for="from-date">From:</label>
+                  <input id="from-date" name="from-date" class="m-2" type="" placeholder="From date">
+                  <label for="to-date">To:</label>
+                  <input id="to-date" name="to-date" class="m-2" type="" placeholder="To date">
+                  <input id="superset-link" class="btn btn-primary m-2" type="submit" value="Copy query">
+                </form>
+              </div>
+            </p>
             </div>
             <table class="table container">
               <tr>
@@ -81,6 +93,20 @@
             <a href="{% url 'installments-create' installment.contract_id %}" role="button" class="btn btn-outline-primary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
         </div>
         </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+        <script>
+            $('#from-date').datepicker({
+                uiLibrary: 'bootstrap4',
+                dateFormat: 'yy-mm-dd',
+            });
+            $('#to-date').datepicker({
+                uiLibrary: 'bootstrap4',
+                dateFormat: 'yy-mm-dd',
+            });
+        </script>
     </body>
 </html>
 {% endblock content %}

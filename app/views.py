@@ -1,10 +1,11 @@
 import csv
 import datetime
 
+import clipboard
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.forms import DateInput
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -45,6 +46,7 @@ from app.tables import (
 from app.utils import (
     fetch_cases,
     fetch_cases_by_date,
+    generate_presto_query,
     get_case_by_id,
     get_contract_by_id,
 )
@@ -242,8 +244,10 @@ class ConditionView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         installment = Installment.objects.filter(id=self.kwargs['installment_id']).get()
+
         context['installment'] = installment
         context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
+
         return context
 
     def get_success_url(self):
@@ -381,3 +385,16 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
         context = super().get_context_data(**kwargs)
         context['url'] = self.request.get_full_path()
         return context
+
+
+def presto_query(request):
+    query_params = request.GET
+    date_format = "%Y-%m-%d"
+    event_id = query_params.get('event-id')
+    from_date = datetime.datetime.strptime(
+            query_params.get('from-date'),
+            date_format) if query_params.get('from-date') else None
+    to_date = datetime.datetime.strptime(
+            query_params.get('to-date'),
+            date_format) if query_params.get('to-date') else None
+    return JsonResponse({'query': generate_presto_query(event_id, from_date, to_date)})

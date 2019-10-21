@@ -5,6 +5,7 @@ beautifulsoup4==4.8.0
 certifi==2019.6.16
 cffi==1.12.3
 chardet==3.0.4
+clipboard==0.0.4
 coverage==4.5.4
 coveralls==1.8.2
 cryptography==2.7
@@ -43,6 +44,7 @@ pyflakes==2.1.1
 Pygments==2.4.2
 PyJWT==1.7.1
 pyOpenSSL==19.0.0
+pyperclip==1.7.0
 python-coveralls==2.9.3
 python-dateutil==2.8.0
 python3-openid==3.1.0
