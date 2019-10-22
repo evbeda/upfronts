@@ -1,45 +1,45 @@
 {% extends 'base.html' %}
 {% load bootstrap4 %}
-{% bootstrap_css %}
 {% load static %}
+{% bootstrap_css %}
 {% load staticfiles %}
 {% load i18n %}
-{% load render_table from django_tables2 %}
+
+{% block head %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'css\delete_installment.css' %}">
+{% endblock %}
+
+{% block title %} Delete installment {% endblock title %}
+
 {% block content %}
-<html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="{% static 'css\delete_installment.css' %}">
-    </head>
-    <body>
-        <div class='m-5 p-3'>
-            <form method="post">{% csrf_token %}
-                <div class="row justify-content-center m-3">
-                    <div class="card width-card">
-                        <div class="card-body">
-                            <h5 class="card-title">Delete Installment</h5>
-                            <p class="card-text center">
-                                <li class="m-2"> <b>Organizer: </b> {{ object.contract.organizer_account_name }}</li>
-                                <li class="m-2"> <b>Recoupable: </b> {{ object.is_recoup }}</li>
-                                <li class="m-2"> <b>Max payment date: </b> {{ object.maximum_payment_date }}</li>
-                                <li class="m-2"> <b>Upfront projection: </b> {{ object.upfront_projection }}</li>
-                                <li class="m-2"> <b>Recoup amount: </b> {{ object.recoup_amount }}</li>
-                                <li class="m-2"> <b>Status: </b> {{ object.status }}</li>
-                                <li class="m-2"> <b>GTF: </b> {{ object.gtf }}</li>
-                                <li class="m-2"> <b>GTS: </b> {{ object.gts }}</li>
-                                <div class="row m-4">
-                                    <div class="col justify-content-md-center">
-                                        <a href="{% url 'installments-create' object.contract_id %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
-                                    </div>
-                                    <div class="col row justify-content-md-end">
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </div>
+    <div class='m-5 p-3'>
+        <form method="post">{% csrf_token %}
+            <div class="row justify-content-center m-3">
+                <div class="card width-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Delete Installment</h5>
+                        <p class="card-text center">
+                            <li class="m-2"> <b>Organizer: </b> {{ object.contract.organizer_account_name }}</li>
+                            <li class="m-2"> <b>Recoupable: </b> {{ object.is_recoup }}</li>
+                            <li class="m-2"> <b>Max payment date: </b> {{ object.maximum_payment_date }}</li>
+                            <li class="m-2"> <b>Upfront projection: </b> {{ object.upfront_projection }}</li>
+                            <li class="m-2"> <b>Recoup amount: </b> {{ object.recoup_amount }}</li>
+                            <li class="m-2"> <b>Status: </b> {{ object.status }}</li>
+                            <li class="m-2"> <b>GTF: </b> {{ object.gtf }}</li>
+                            <li class="m-2"> <b>GTS: </b> {{ object.gts }}</li>
+                            <div class="row m-4">
+                                <div class="col justify-content-md-center">
+                                    <a href="{% url 'installments-create' object.contract_id %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
                                 </div>
-                            </p>
-                        </div>
+                                <div class="col row justify-content-md-end">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </div>
+                            </div>
+                        </p>
                     </div>
                 </div>
-            </form>
-        </div>
-    </body>
-</html>
+            </div>
+        </form>
+    </div>
 {% endblock content %}
