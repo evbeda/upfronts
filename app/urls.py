@@ -14,6 +14,16 @@ urlpatterns = [
         name='installments-create',
     ),
     url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/update/(?P<pk>[0-9]+)/$',
+        views.InstallmentUpdate.as_view(),
+        name='installments-update',
+    ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/delete/(?P<pk>[0-9]+)/$',
+        views.InstallmentDelete.as_view(),
+        name='installments-delete',
+    ),
+    url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)/conditions/$',
         views.ConditionView.as_view(),
         name='conditions',

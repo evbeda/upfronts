@@ -16,6 +16,7 @@ from .models import (
 
 class InstallmentsTable(tables.Table):
     edit = tables.Column()
+    delete = tables.Column()
     conditions = tables.Column()
 
     class Meta:
@@ -35,7 +36,18 @@ class InstallmentsTable(tables.Table):
         return '${:0.2f}'.format(value)
 
     def render_edit(self, value):
-        return format_html('<a href="#"><i class="far fa-edit"></i></a>')
+        return format_html(
+            '<a href="{}"><i class="far fa-edit"></i></a>'.format(
+                reverse('installments-update', args=[value.contract_id, value.id])
+            )
+        )
+
+    def render_delete(self, value):
+        return format_html(
+            '<a href="{}"><i class="far fa-trash-alt"></i></a>'.format(
+                reverse('installments-delete', args=[value.contract_id, value.id])
+            )
+        )
 
     def render_recoup_amount(self, value):
         return '${:0.2f}'.format(value)
@@ -110,6 +122,10 @@ class FetchSalesForceCasesTable(tables.Table):
         )
 
     def render_save(self, value):
+        if Contract.objects.filter(salesforce_case_id=value).first():
+            return format_html(
+                '<p>This contract already exists.</p>'
+            )
         return format_html(
             '''<form method="POST" action="{}">
                 <button type="submit" class="btn btn-link"><i class="far fa-save fa-lg"></i></button>

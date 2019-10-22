@@ -21,6 +21,10 @@ from django.urls import reverse
 from freezegun import freeze_time
 from simple_salesforce import Salesforce
 
+from app.factories import (
+    ContractFactory,
+    InstallmentFactory,
+)
 from . import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
@@ -33,7 +37,9 @@ from app.views import (
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
+    InstallmentDelete,
     InstallmentsFilter,
+    InstallmentUpdate,
     InstallmentView,
     SaveCaseView,
     ToggleConditionView,
@@ -251,16 +257,19 @@ class FilterTest(TestCase):
             organizer_account_name='EDA',
             organizer_email='test@test.com',
             signed_date='2019-03-20',
+            case_number='633457357',
         )
         contract2 = Contract.objects.create(
             organizer_account_name='NOT_AN_INTERESTING_NAME',
             organizer_email='test@test.com',
             signed_date='2019-03-15',
+            case_number='984534089',
         )
         contract3 = Contract.objects.create(
             organizer_account_name='NOT_AN_INTERESTING_NAME',
             organizer_email='test@eda.com',
             signed_date='2019-03-15',
+            case_number='53498985fh2',
         )
         qs = Contract.objects.all()
         f = ContractsFilter()
@@ -567,6 +576,28 @@ class AddContractTests(TestCase):
         contract = Contract.objects.first()
         self.assertEqual(contract.case_number, FAKE_CASE_RETURN['CaseNumber'])
 
+    def test_get_case_already_persisted(self):
+        contract = ContractFactory.create()
+        kwargs = {
+            'case_numbers': contract.case_number
+        }
+        request = self.factory.get(reverse('contracts-add'))
+        FAKE_FETCH_DATA = [
+            {
+                'case_number': "428967",
+                'case_id': contract.salesforce_case_id,
+                'contract_id': 'FAKE_CASE_CONTRACT_ID_1',
+                'organizer_email': 'FAKE_CASE_CONTRACT_USERNAME_1',
+                'organizer_name': 'FAKE_CASE_ORGANIZER_NAME_1',
+                'signed_date': '2019-02-08T21:26:13.000+0000',
+                'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
+            },
+        ]
+        with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
+            response = ContractAdd.as_view()(request, **kwargs)
+        response = response.render().content
+        self.assertIn(bytes("This contract already exists.", encoding='utf-8'), response)
+
 
 class InstallmentTest(TestCase):
 
@@ -598,6 +629,42 @@ class InstallmentTest(TestCase):
         response = InstallmentView.as_view()(request, **kwargs)
         content = response.render().content
         self.assertIn(bytes(contract_data['organizer_email'], encoding='utf-8'), content)
+
+    def test_update_installment(self):
+        factory = RequestFactory()
+        installment = InstallmentFactory()
+        installment_data = installment.__dict__
+        installment_data['is_recoup'] = True
+        installment_data['payment_date'] = datetime.date(2018, 3, 2)
+        installment_data['maximum_payment_date'] = datetime.date(2018, 7, 1)
+        installment_data['recoup_amount'] = 9999
+        kwargs = {
+            'contract_id': installment.contract_id,
+            'pk': installment.id,
+        }
+        request = factory.post(
+            reverse('installments-update', kwargs=kwargs),
+            installment_data,
+        )
+        InstallmentUpdate.as_view()(request, **kwargs)
+        installment_updated = Installment.objects.first()
+        self.assertEqual(installment_data['is_recoup'], installment_updated.is_recoup)
+        self.assertEqual(installment_data['payment_date'], installment_updated.payment_date)
+        self.assertEqual(installment_data['maximum_payment_date'], installment_updated.maximum_payment_date)
+        self.assertEqual(installment_data['recoup_amount'], installment_updated.recoup_amount)
+
+    def test_delete_installment(self):
+        factory = RequestFactory()
+        installment = InstallmentFactory()
+        kwargs = {
+            'contract_id': installment.contract_id,
+            'pk': installment.id,
+        }
+        request = factory.post(
+            reverse('installments-delete', kwargs=kwargs)
+        )
+        InstallmentDelete.as_view()(request, **kwargs)
+        self.assertEqual(None, Installment.objects.first())
 
 
 class AllInstallmentsViewTest(TestCase):
