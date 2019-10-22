@@ -1,12 +1,17 @@
 import csv
 import datetime
 import io
-from unittest.mock import patch
+import mock
+from unittest.mock import (
+    MagicMock,
+    patch,
+)
 
 from django.contrib.auth.models import (
     User,
 )
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.test import (
     Client,
     RequestFactory,
@@ -689,3 +694,16 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_maximum_payment_date)
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
+
+
+class UploadBackUpFilesTest(TestCase):
+
+    def setUp(self):
+        c = Client()
+        self.file_mock = MagicMock(spec=File)
+
+    def test_file_field(self):
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.pdf'
+        condition_file = InstallmentCondition(upload_file=file_mock)
+        self.assertEqual(condition_file.upload_file.name, file_mock.name)

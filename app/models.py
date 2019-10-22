@@ -1,4 +1,6 @@
 import datetime
+
+from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from . import (
@@ -49,8 +51,12 @@ class Installment(models.Model):
 
 class InstallmentCondition(models.Model):
     condition_name = models.CharField(max_length=80)
-    installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
     done = models.DateTimeField(blank=True, null=True)
+    installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
+    upload_file = models.FileField(
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'xls', 'png',  'jpeg'])],
+        blank=True,
+    )
 
     def toggle_done(self):
         self.done = None if self.done else datetime.datetime.now()

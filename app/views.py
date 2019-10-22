@@ -1,14 +1,16 @@
 import csv
 import datetime
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import DateInput
 from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
     ListView,
@@ -237,7 +239,7 @@ class ConditionView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         installment = Installment.objects.filter(id=self.kwargs['installment_id']).get()
         context['installment'] = installment
-        context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
+        context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id'])
         return context
 
     def get_success_url(self):
@@ -257,6 +259,24 @@ class ToggleConditionView(View):
         condition_id = self.kwargs.get('condition_id')
         condition = InstallmentCondition.objects.get(pk=condition_id)
         condition.toggle_done()
+        return redirect('conditions', contract_id, installment_id)
+
+
+class ConditionBackupProofView(View):
+
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+
+        condition_id = self.kwargs.get('condition_id')
+        condition = InstallmentCondition.objects.get(pk=condition_id)
+        try:
+            condition.upload_file = self.request.FILES.get('backup_file')
+            condition.full_clean()
+            condition.save()
+        except ValidationError as e:
+            for msg in e.messages:
+                messages.add_message(request, messages.ERROR, msg)
         return redirect('conditions', contract_id, installment_id)
 
 
