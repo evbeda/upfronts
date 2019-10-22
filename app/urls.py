@@ -34,6 +34,12 @@ urlpatterns = [
         views.ToggleConditionView.as_view(),
         name='toggle-condition',
     ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
+        '/conditions/(?P<condition_id>[0-9]+)/backup_proof/$',
+        views.ConditionBackupProofView.as_view(),
+        name='condition_backup_proof',
+    ),
     url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
     url(r'^ajax/superset-query', views.presto_query, name='superset_query'),

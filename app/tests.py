@@ -1,13 +1,22 @@
 import csv
 import datetime
 import io
+<<<<<<< HEAD
 from textwrap import dedent
 from unittest.mock import patch
+=======
+import mock
+from unittest.mock import (
+    MagicMock,
+    patch,
+)
+>>>>>>> Add a proof file for each condition
 
 from django.contrib.auth.models import (
     User,
 )
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.test import (
     Client,
     RequestFactory,
@@ -783,6 +792,7 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
 
+<<<<<<< HEAD
     def test_all_installments_pagination_incomplete_page(self):
 
         factory = RequestFactory()
@@ -872,3 +882,17 @@ class PrestoQueriesTest(TestCase):
                 datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
             )
         )
+=======
+
+class UploadBackUpFilesTest(TestCase):
+
+    def setUp(self):
+        c = Client()
+        self.file_mock = MagicMock(spec=File)
+
+    def test_file_field(self):
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.pdf'
+        condition_file = InstallmentCondition(upload_file=file_mock)
+        self.assertEqual(condition_file.upload_file.name, file_mock.name)
+>>>>>>> Add a proof file for each condition
