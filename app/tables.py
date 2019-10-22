@@ -27,12 +27,19 @@ class InstallmentsTable(tables.Table):
             'is_recoup',
             'status',
             'upfront_projection',
+            'recoup_amount',
+            'balance',
             'maximum_payment_date',
             'payment_date',
-            'recoup_amount',
         )
 
-    def render_installment_projection(self, value):
+    def render_upfront_projection(self, value):
+        return '${:0.2f}'.format(value)
+
+    def render_recoup_amount(self, value):
+        return '${:0.2f}'.format(value)
+
+    def render_balance(self, value):
         return '${:0.2f}'.format(value)
 
     def render_edit(self, value):
@@ -48,9 +55,6 @@ class InstallmentsTable(tables.Table):
                 reverse('installments-delete', args=[value.contract_id, value.id])
             )
         )
-
-    def render_recoup_amount(self, value):
-        return '${:0.2f}'.format(value)
 
     def render_conditions(self, value):
         return format_html(
