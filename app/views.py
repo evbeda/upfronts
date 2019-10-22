@@ -1,7 +1,6 @@
 import csv
 import datetime
 
-import clipboard
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.forms import DateInput
@@ -397,4 +396,5 @@ def presto_query(request):
     to_date = datetime.datetime.strptime(
             query_params.get('to-date'),
             date_format) if query_params.get('to-date') else None
-    return JsonResponse({'query': generate_presto_query(event_id, from_date, to_date)})
+    query = generate_presto_query(event_id, from_date, to_date)
+    return JsonResponse({'query': query})
