@@ -40,4 +40,13 @@ form input {
 
 .datep {
   margin-left: 10px;
+  margin-top: 4px;
+}
+
+.gj-datepicker [role=right-icon] {
+    margin-top: 5px;
+    cursor: pointer;
+}
+.alert-message{
+    margin-top: 10px;
 }
