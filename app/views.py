@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
+    DeleteView,
     ListView,
     UpdateView,
     TemplateView,
@@ -398,3 +399,47 @@ def presto_query(request):
             date_format) if query_params.get('to-date') else None
     query = generate_presto_query(event_id, from_date, to_date)
     return JsonResponse({'query': query})
+
+
+class InstallmentUpdate(UpdateView):
+    model = Installment
+    fields = (
+        'is_recoup',
+        'status',
+        'upfront_projection',
+        'maximum_payment_date',
+        'payment_date',
+        'recoup_amount',
+        'gtf',
+        'gts',
+    )
+    template_name = "app/update_installment.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'].fields['maximum_payment_date'].widget = DateInput(
+            attrs={
+                'id': 'datepicker_maximum_payment_date',
+                'type': 'text',
+            },
+        )
+        context['form'].fields['payment_date'].widget = DateInput(
+            attrs={
+                'id': 'datepicker_payment_date',
+                'type': 'text',
+            },
+        )
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('installments-create', kwargs={'contract_id': self.kwargs['contract_id']})
+
+
+class InstallmentDelete(DeleteView):
+    model = Installment
+    template_name = "app/delete_installment.html"
+
+    def post(self, request, *args, **kwargs):
+        contract_id = kwargs['contract_id']
+        self.get_queryset().filter(id=kwargs['pk']).delete()
+        return redirect("installments-create", contract_id)

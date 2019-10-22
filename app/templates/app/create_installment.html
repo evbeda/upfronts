@@ -1,95 +1,82 @@
 {% extends 'base.html' %}
 {% load bootstrap4 %}
-{% bootstrap_css %}
 {% load static %}
+{% bootstrap_css %}
 {% load staticfiles %}
-{% load i18n %}
 {% load render_table from django_tables2 %}
+{% load i18n %}
+{% block head %}
+    {{ block.super }}
+    <script src="{% static 'js/create_installment.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/create_installment.css' %}">
+{% endblock %}
+
+{% block title %} Create installment {% endblock title %}
+
 {% block content %}
-<html>
-    <head>
-        <link rel="stylesheet" href="../../static/css/uf_table.css">
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.0/css/all.css">
-        <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    </head>
-    <body>
-        <div class='m-5 p-3'>
-            <div class="row justify-content-center m-3">
-                    <div class="card" style="width: 50rem;">
-                      <div class="card-body">
-                        <h5 class="card-title">Contract</h5>
-                        <p class="card-text">
-                            <li class="m-2"> <b>Account name: </b> {{contract.organizer_account_name}} </li>
-                            <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
-                            <li class="m-2"> <b>Signed date: </b>{{contract.signed_date}} </li>
-                            {% if contract.event_id %}
-                                <li class="m-2"><b>Event id: </b> <a href="{{link_to_event}}">{{contract.event_id}}</a></li>
-                            {% endif %}
-                            {% if contract.user_id %}
-                                <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></li>
-                            {% endif %}
-                            <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></li>
-                        </p>
-                      </div >
-                    </div>
-            </div>
-
-            <div class="row justify-content-center m-5">
-                <div class="">
-                    {% render_table table %}
+    <div class='m-5 p-3'>
+        <div class="row justify-content-center m-3">
+                <div class="card width-card-info-installment">
+                  <div class="card-body">
+                    <h5 class="card-title">Contract</h5>
+                    <p class="card-text">
+                        <li class="m-2"> <b>Account name: </b> {{contract.organizer_account_name}} </li>
+                        <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
+                        <li class="m-2"> <b>Signed date: </b>{{contract.signed_date}} </li>
+                        {% if contract.event_id %}
+                            <li class="m-2"><b>Event id: </b> <a href="{{link_to_event}}">{{contract.event_id}}</a></li>
+                        {% endif %}
+                        {% if contract.user_id %}
+                            <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></li>
+                        {% endif %}
+                        <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></li>
+                    </p>
+                  </div >
                 </div>
-            </div>
+        </div>
 
-            <div class="row justify-content-center m-5">
-                <div class="col-6">
-                    <form method="post">{% csrf_token %}
-                        <div class="m-2">
-                            <h2>Create installment</h2>
-                        </div>
-                        <div class="container">
-                            {% bootstrap_field form.is_recoup layout='horizontal' %}
-                            {% bootstrap_field form.status layout='horizontal' %}
-                            {% bootstrap_field form.upfront_projection layout='horizontal' %}
-                            {% bootstrap_field form.maximum_payment_date layout='horizontal' %}
-                            {% bootstrap_field form.payment_date layout='horizontal' %}
-                            {% bootstrap_field form.recoup_amount layout='horizontal' %}
-                            {% bootstrap_field form.gtf layout='horizontal' %}
-                            {% bootstrap_field form.gts layout='horizontal' %}
-                            <div class="form-group row">
-                                <div class="col-sm-10 offset-sm-2">
-                                    <div class="float-right">
-                                        <input type='submit' class="btn btn-outline-primary" value='Save' />
-                                    </div>
+        <div class="row justify-content-center m-5">
+            <div class="">
+                {% render_table table %}
+            </div>
+        </div>
+
+        <div class="row justify-content-center m-5">
+            <div class="col-6">
+                <form method="post">{% csrf_token %}
+                    <div class="m-2">
+                        <h2>Create installment</h2>
+                    </div>
+                    <div class="container">
+                        {% bootstrap_field form.is_recoup layout='horizontal' %}
+                        {% bootstrap_field form.status layout='horizontal' %}
+                        {% bootstrap_field form.upfront_projection layout='horizontal' %}
+                        {% bootstrap_field form.maximum_payment_date layout='horizontal' %}
+                        {% bootstrap_field form.payment_date layout='horizontal' %}
+                        {% bootstrap_field form.recoup_amount layout='horizontal' %}
+                        {% bootstrap_field form.gtf layout='horizontal' %}
+                        {% bootstrap_field form.gts layout='horizontal' %}
+                        <div class="form-group row">
+                            <div class="col-sm-10 offset-sm-2">
+                                <div class="float-right">
+                                    <input type='submit' class="btn btn-outline-primary" value='Save'/>
                                 </div>
                             </div>
                         </div>
-                    </form>
-                </div>
-                <div class=col-3>
-                    <div class="card" style="width: 18rem;">
-                      <div class="card-body">
-                        <h5 class="card-title">Description</h5>
-                        <p class="card-text">{{contract.description}}</p>
-                      </div >
                     </div>
+                </form>
+            </div>
+            <div class=col-3>
+                <div class="card width-card-description">
+                  <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{contract.description}}</p>
+                  </div >
                 </div>
             </div>
+        </div>
         <div class="float-left">
-                    <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-primary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
+                    <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
         </div>
-        </div>
-        <script>
-        $( function() {
-            $( "#datepicker_maximum_payment_date" ).datepicker();
-            $( "#datepicker_payment_date" ).datepicker();
-        } );
-        </script>
-    </body>
-</html>
+    </div>
 {% endblock content %}
