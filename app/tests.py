@@ -21,11 +21,12 @@ from app.factories import (
     ContractFactory,
     InstallmentFactory,
 )
-from . import (
+from app import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
     INVALID_RECOUP_AMOUNT,
     STATUS,
+    SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.views import (
     AllInstallmentsView,
@@ -765,38 +766,44 @@ class PrestoQueriesTest(TestCase):
         event_id = '1234'
         from_date = datetime.date(2019, 3, 8)
         to_date = datetime.date(2019, 5, 8)
-        date_format = "%Y-%m-%d"
         expected_query = dedent("""
-        select f.organizer_id, f.currency, u.email, e.name,
-        sum(f_gts_ntv) as f_gts_ntv,
-        sum(f_gtf_ntv) as f_gtf_ntv,
-        sum(f_tax_ntv) as f_tax_ntv,
-        sum(f_eb_tax_ntv) as f_eb_tax_ntv,
-        sum(f_epp_gts_ntv) as f_epp_gts_ntv
-        from hive.dw.f_ticket_merchandise_purchase f
-        join hive.eb.users u on u.id = f.organizer_id
-        join hive.eb.events e on e.id = f.event_id
-        where f.currency in ('BRL')
-        and is_valid = 'Y'
-        and trx_date > '{from_date}'
-        and trx_date < '{to_date}'
-        and f.event_id = {event_id}
-        group by 1,2,3,4
+        SELECT  f.organizer_id,
+                f.currency,
+                u.email,
+                e.name,
+                sum(f_gts_ntv) AS f_gts_ntv,
+                sum(f_gtf_ntv) AS f_gtf_ntv,
+                sum(f_tax_ntv) AS f_tax_ntv,
+                sum(f_eb_tax_ntv) AS f_eb_tax_ntv,
+                sum(f_epp_gts_ntv) AS f_epp_gts_ntv
+
+        FROM    hive.dw.f_ticket_merchandise_purchase f
+                JOIN hive.eb.users u ON u.id = f.organizer_id
+                JOIN hive.eb.events e ON e.id = f.event_id
+
+        WHERE   is_valid = 'Y'
+                AND f.currency IN ('BRL')
+                AND trx_date > '{from_date}'
+                AND trx_date < '{to_date}'
+                AND f.event_id = {event_id}
+
+        GROUP BY 1,2,3,4
         """).format(
-            from_date=from_date.strftime(date_format),
-            to_date=to_date.strftime(date_format),
-            event_id=event_id
+            from_date=from_date.strftime(SUPERSET_QUERY_DATE_FORMAT),
+            to_date=to_date.strftime(SUPERSET_QUERY_DATE_FORMAT),
+            event_id=event_id,
         )
+
         result = generate_presto_query(event_id, from_date, to_date)
 
         self.assertEqual(expected_query, result)
 
     def test_ajax_presto_query_endpoint(self):
-        date_format = "%Y-%m-%d"
+        client = Client()
         EVENT_ID = '1234'
         FROM_DATE = '2019-10-24'
         TO_DATE = '2019-11-24'
-        client = Client()
+
         response = client.get(
             reverse('superset_query'),
             {
@@ -805,11 +812,12 @@ class PrestoQueriesTest(TestCase):
                 'to-date': TO_DATE,
             }
         )
+
         self.assertEqual(
             response.json()['query'],
             generate_presto_query(
                 EVENT_ID,
-                datetime.datetime.strptime(FROM_DATE, date_format),
-                datetime.datetime.strptime(TO_DATE, date_format),
+                datetime.datetime.strptime(FROM_DATE, SUPERSET_QUERY_DATE_FORMAT),
+                datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
             )
         )

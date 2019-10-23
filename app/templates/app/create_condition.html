@@ -40,6 +40,8 @@
               <input id="from-date" name="from-date" class="m-2" type="" placeholder="From date">
               <label for="to-date">To:</label>
               <input id="to-date" name="to-date" class="m-2" type="" placeholder="To date">
+              <label for="currency">Currency:</label>
+              <input id="currency" name="currency" class="m-2" type="" placeholder="Currency" value="{{ SUPERSET_DEFAULT_CURRENCY }}">
               <input class="btn btn-primary m-2" type="submit" value="Copy query">
             </form>
           </div>
@@ -110,7 +112,8 @@
             let eventId = form.querySelector('#event-id').value;
             let fromDate = form.querySelector('#from-date').value;
             let toDate = form.querySelector('#to-date').value;
-            let url = "{% url 'superset_query' %}/?" + $.param({"event-id": eventId, "from-date": fromDate, 'to-date': toDate})
+            let currency = form.querySelector('#currency').value;
+            let url = "{% url 'superset_query' %}/?" + $.param({"event-id": eventId, "from-date": fromDate, 'to-date': toDate, 'currency': currency})
 
             fetch(url)
               .then(r => r.json())

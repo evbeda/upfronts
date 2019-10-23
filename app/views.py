@@ -4,7 +4,10 @@ import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.forms import DateInput
-from django.http import HttpResponse, JsonResponse
+from django.http import (
+    HttpResponse,
+    JsonResponse,
+)
 from django.shortcuts import redirect
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -28,10 +31,12 @@ from django.utils.decorators import method_decorator
 
 from app import (
     BASIC_CONDITIONS,
+    SUPERSET_DEFAULT_CURRENCY,
     LINK_TO_RECOUPS,
     LINK_TO_REPORT_EVENTS,
     LINK_TO_SEARCH_EVENT_OR_USER,
     STATUS,
+    SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.models import (
     Contract,
@@ -247,6 +252,7 @@ class ConditionView(LoginRequiredMixin, CreateView):
 
         context['installment'] = installment
         context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
+        context['SUPERSET_DEFAULT_CURRENCY'] = SUPERSET_DEFAULT_CURRENCY
 
         return context
 
@@ -389,15 +395,20 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
 
 def presto_query(request):
     query_params = request.GET
-    date_format = "%Y-%m-%d"
+
     event_id = query_params.get('event-id')
     from_date = datetime.datetime.strptime(
-            query_params.get('from-date'),
-            date_format) if query_params.get('from-date') else None
+        query_params.get('from-date'),
+        SUPERSET_QUERY_DATE_FORMAT,
+    ) if query_params.get('from-date') else None
+
     to_date = datetime.datetime.strptime(
-            query_params.get('to-date'),
-            date_format) if query_params.get('to-date') else None
-    query = generate_presto_query(event_id, from_date, to_date)
+        query_params.get('to-date'),
+        SUPERSET_QUERY_DATE_FORMAT,
+    ) if query_params.get('to-date') else None
+    currency = query_params.get('currency')
+
+    query = generate_presto_query(event_id, from_date, to_date, currency)
     return JsonResponse({'query': query})
 
 
