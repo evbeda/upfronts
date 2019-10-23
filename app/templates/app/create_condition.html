@@ -13,6 +13,13 @@
 
 {% block content %}
     <div class='m-5 p-3'>
+        {% if messages %}
+          <div class="alert alert-danger">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+          </div>
+        {% endif %}
         <div class="row justify-content-center m-3">
                 <div class="card width-card">
                   <div class="card-body">
@@ -35,6 +42,10 @@
             <th>Condition name</th>
             <th>Date modified</th>
             <th>Actions</th>
+            <th>Preview</th>
+            <th>Download</th>
+            <th>Upload a File (.pdf, .xls, .png, .jpeg)</th>
+            <th>Action</th>
           </tr>
           {% for object in object_list %}
           <tr>
@@ -52,6 +63,36 @@
                   </button>
               </form>
             </td>
+            {% if object.upload_file %}
+                <td>
+                  <a target="_blank" href="http://docs.google.com/gview?url={{ object.upload_file.url }}"><i class="fas fa-search"></i></a>
+                </td>
+                <td>
+                  <a href="{{ object.upload_file.url }}"><i class="fas fa-download"></i></a>
+                </td>
+                <td>
+                  {{object.upload_file}}
+                </td>
+                <td>
+                  <a href=""><i class="far fa-trash-alt"></i></a>
+                </td>
+                {% else %}
+                <td>
+                  <a><i class="fas fa-search"></i></a>
+                </td>
+                <td>
+                  <a><i class="fas fa-download"></i></a>
+                </td>
+                <form enctype="multipart/form-data" method="POST" action="{% url 'condition_backup_proof' installment.contract_id installment.id object.id %}">
+                  {% csrf_token %}
+                  <td>
+                    <input type="file" name="backup_file" accept="application/pdf, application/vnd.ms-excel, image/png, image/jpeg">
+                  </td>
+                  <td>
+                    <input type="submit" value="Upload"/>
+                  </td>
+                  </form>
+              {% endif %}
           </tr>
           {% endfor %}
         </table>
