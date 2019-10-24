@@ -1,6 +1,7 @@
 import csv
 import datetime
 import io
+from textwrap import dedent
 from unittest.mock import patch
 
 from django.contrib.auth.models import (
@@ -20,11 +21,12 @@ from app.factories import (
     ContractFactory,
     InstallmentFactory,
 )
-from . import (
+from app import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
     INVALID_RECOUP_AMOUNT,
     STATUS,
+    SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.views import (
     AllInstallmentsView,
@@ -47,6 +49,7 @@ from app.models import (
 from app.utils import (
     fetch_cases,
     fetch_cases_by_date,
+    generate_presto_query,
 )
 
 
@@ -756,3 +759,65 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_maximum_payment_date)
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
+
+
+class PrestoQueriesTest(TestCase):
+    def test_generate_presto_query(self):
+        event_id = '1234'
+        from_date = datetime.date(2019, 3, 8)
+        to_date = datetime.date(2019, 5, 8)
+        expected_query = dedent("""
+        SELECT  f.organizer_id,
+                f.currency,
+                u.email,
+                e.name,
+                sum(f_gts_ntv) AS f_gts_ntv,
+                sum(f_gtf_ntv) AS f_gtf_ntv,
+                sum(f_tax_ntv) AS f_tax_ntv,
+                sum(f_eb_tax_ntv) AS f_eb_tax_ntv,
+                sum(f_epp_gts_ntv) AS f_epp_gts_ntv
+
+        FROM    hive.dw.f_ticket_merchandise_purchase f
+                JOIN hive.eb.users u ON u.id = f.organizer_id
+                JOIN hive.eb.events e ON e.id = f.event_id
+
+        WHERE   is_valid = 'Y'
+                AND f.currency IN ('BRL')
+                AND trx_date > '{from_date}'
+                AND trx_date < '{to_date}'
+                AND f.event_id = {event_id}
+
+        GROUP BY 1,2,3,4
+        """).format(
+            from_date=from_date.strftime(SUPERSET_QUERY_DATE_FORMAT),
+            to_date=to_date.strftime(SUPERSET_QUERY_DATE_FORMAT),
+            event_id=event_id,
+        )
+
+        result = generate_presto_query(event_id, from_date, to_date)
+
+        self.assertEqual(expected_query, result)
+
+    def test_ajax_presto_query_endpoint(self):
+        client = Client()
+        EVENT_ID = '1234'
+        FROM_DATE = '2019-10-24'
+        TO_DATE = '2019-11-24'
+
+        response = client.get(
+            reverse('superset_query'),
+            {
+                'event-id': EVENT_ID,
+                'from-date': FROM_DATE,
+                'to-date': TO_DATE,
+            }
+        )
+
+        self.assertEqual(
+            response.json()['query'],
+            generate_presto_query(
+                EVENT_ID,
+                datetime.datetime.strptime(FROM_DATE, SUPERSET_QUERY_DATE_FORMAT),
+                datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
+            )
+        )
