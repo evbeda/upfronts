@@ -2,8 +2,8 @@ import csv
 import datetime
 import io
 import mock
+
 from unittest.mock import (
-    MagicMock,
     patch,
 )
 
@@ -12,11 +12,12 @@ from django.contrib.auth.models import (
 )
 from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.core.files.storage import Storage
 from django.test import (
     Client,
     RequestFactory,
     TestCase,
-)
+    override_settings)
 from django.urls import reverse
 from freezegun import freeze_time
 from simple_salesforce import Salesforce
@@ -24,7 +25,7 @@ from simple_salesforce import Salesforce
 from app.factories import (
     ContractFactory,
     InstallmentFactory,
-)
+    ConditionFactory)
 from . import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
@@ -37,6 +38,7 @@ from app.views import (
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
+    delete_uploaded_file_condition,
     InstallmentDelete,
     InstallmentsFilter,
     InstallmentUpdate,
@@ -53,7 +55,6 @@ from app.utils import (
     fetch_cases,
     fetch_cases_by_date,
 )
-
 
 class ModelTest(TestCase):
 
@@ -240,6 +241,31 @@ class InstallmentConditionTest(TestCase):
         ToggleConditionView.as_view()(request, **kwargs)
         installment_condition.refresh_from_db()
         self.assertNotEqual(installment_condition.done, None)
+
+    def test_delete_file_uploaded(self):
+        file_mock = mock.MagicMock(spec=File, name='FileMock')
+        file_mock.name = 'test1.jpg'
+        condition = ConditionFactory.create()
+        condition.upload_file = file_mock
+        storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
+        storage_mock.url = mock.MagicMock(name='url')
+        storage_mock.url.return_value = '/tmp/test1.jpg'
+        with mock.patch('django.core.files.storage.default_storage._wrapped', storage_mock):
+            condition.save()
+        factory = RequestFactory()
+        kwargs = {
+            'contract_id': condition.installment.contract_id,
+            'installment_id': condition.installment.id,
+            'condition_id': condition.id,
+        }
+        request = factory.post(
+            reverse('delete-uploaded-file', kwargs=kwargs)
+        )
+        delete_uploaded_file_condition(kwargs)
+        import ipdb;
+        ipdb.set_trace()
+        self.assertEqual(None, Installment.objects.first())
+
 
 
 class RedirectTest(TestCase):
@@ -763,14 +789,14 @@ class AllInstallmentsViewTest(TestCase):
         self.assertNotIn(self.installment3, result_search_status)
 
 
-class UploadBackUpFilesTest(TestCase):
-
-    def setUp(self):
-        c = Client()
-        self.file_mock = MagicMock(spec=File)
-
-    def test_file_field(self):
-        file_mock = mock.MagicMock(spec=File)
-        file_mock.name = 'test.pdf'
-        condition_file = InstallmentCondition(upload_file=file_mock)
-        self.assertEqual(condition_file.upload_file.name, file_mock.name)
+# class UploadBackUpFilesTest(TestCase):
+#
+#     def setUp(self):
+#         c = Client()
+#         self.file_mock = MagicMock(spec=File)
+#
+#     def test_file_field(self):
+#         file_mock = mock.MagicMock(spec=File)
+#         file_mock.name = 'test.pdf'
+#         condition_file = InstallmentCondition(upload_file=file_mock)
+#         self.assertEqual(condition_file.upload_file.name, file_mock.name)

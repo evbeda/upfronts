@@ -40,6 +40,12 @@ urlpatterns = [
         views.ConditionBackupProofView.as_view(),
         name='condition_backup_proof',
     ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
+        '/conditions/(?P<condition_id>[0-9]+)/delete-file/$',
+        views.delete_uploaded_file_condition,
+        name='delete-uploaded-file',
+    ),
     url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
     url(r'^', RedirectView.as_view(url='/contracts/'), name='redirect-url'),
