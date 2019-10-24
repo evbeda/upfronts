@@ -17,7 +17,7 @@ from django.test import (
     Client,
     RequestFactory,
     TestCase,
-    override_settings)
+)
 from django.urls import reverse
 from freezegun import freeze_time
 from simple_salesforce import Salesforce
@@ -38,7 +38,7 @@ from app.views import (
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
-    delete_uploaded_file_condition,
+    DeleteUploadedFileCondition,
     InstallmentDelete,
     InstallmentsFilter,
     InstallmentUpdate,
@@ -55,6 +55,7 @@ from app.utils import (
     fetch_cases,
     fetch_cases_by_date,
 )
+
 
 class ModelTest(TestCase):
 
@@ -261,11 +262,9 @@ class InstallmentConditionTest(TestCase):
         request = factory.post(
             reverse('delete-uploaded-file', kwargs=kwargs)
         )
-        delete_uploaded_file_condition(kwargs)
-        import ipdb;
-        ipdb.set_trace()
-        self.assertEqual(None, Installment.objects.first())
-
+        with mock.patch.object(InstallmentCondition, 'delete_upload_file'):
+            response = DeleteUploadedFileCondition.as_view()(request, **kwargs)
+        self.assertEqual(response.status_code, 302)
 
 
 class RedirectTest(TestCase):

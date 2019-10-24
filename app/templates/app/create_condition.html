@@ -74,7 +74,12 @@
                   {{object.upload_file}}
                 </td>
                 <td>
-                  <a href=""><i class="far fa-trash-alt"></i></a>
+                    <form class="delete-file-form" action="{% url 'delete-uploaded-file' installment.contract_id installment.id object.id %}" method="POST">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-primary" type="submit">
+                        <i class="far fa-trash-alt"></i>
+                      </button>
+                    </form>
                 </td>
                 {% else %}
                 <td>
@@ -119,4 +124,10 @@
             <a href="{% url 'installments-create' installment.contract_id %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
         </div>
     </div>
+    <script>
+        $('.delete-file-form').submit(e => {
+            e.preventDefault();
+            if (confirm('Confirm delete for this file')) e.target.submit();
+        });
+    </script>
 {% endblock content %}

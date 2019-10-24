@@ -36,10 +36,10 @@ class InstallmentFactory(DjangoModelFactory):
     gtf = 873456
     gts = 346897
 
+
 class ConditionFactory(DjangoModelFactory):
     class Meta:
         model = models.InstallmentCondition
-
 
     installment = SubFactory(InstallmentFactory)
     condition_name = "Promissory note"

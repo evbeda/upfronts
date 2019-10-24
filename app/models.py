@@ -62,6 +62,9 @@ class InstallmentCondition(models.Model):
         blank=True,
     )
 
+    def delete_upload_file(self):
+        self.upload_file.delete()
+
     def toggle_done(self):
         self.done = None if self.done else datetime.datetime.now()
         self.save()

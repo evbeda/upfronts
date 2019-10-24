@@ -43,7 +43,7 @@ urlpatterns = [
     url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
         '/conditions/(?P<condition_id>[0-9]+)/delete-file/$',
-        views.delete_uploaded_file_condition,
+        views.DeleteUploadedFileCondition.as_view(),
         name='delete-uploaded-file',
     ),
     url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),

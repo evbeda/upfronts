@@ -1,4 +1,4 @@
-$(document).on('click', '.confirm-delete', function(){
-    confirm = confirm('Are you sure you want to delete this?');
-    return confirm
-})
+$('.delete-file-form').submit(e => {
+    e.preventDefault();
+    if (confirm('Confirm delete for this file')) e.target.submit();
+});

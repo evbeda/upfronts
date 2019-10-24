@@ -4,9 +4,7 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.db import models
 from django.db.models import Q
-from django.dispatch import receiver
 from django.forms import DateInput
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -449,18 +447,12 @@ class InstallmentDelete(DeleteView):
         self.get_queryset().filter(id=kwargs['pk']).delete()
         return redirect("installments-create", contract_id)
 
-def delete_uploaded_file_condition(request):
 
-    import ipdb;
-    ipdb.set_trace()
-
-@receiver(models.signals.post_delete, sender=MediaFile)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
-    """
-    Deletes file from filesystem
-    when corresponding `MediaFile` object is deleted.
-    """
-    if instance.file:
-        if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)
-
+class DeleteUploadedFileCondition(View):
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+        condition_id = self.kwargs.get('condition_id')
+        condition = InstallmentCondition.objects.get(pk=condition_id)
+        condition.delete_upload_file()
+        return redirect('conditions', contract_id, installment_id)
