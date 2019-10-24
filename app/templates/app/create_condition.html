@@ -37,6 +37,22 @@
                   </div >
                 </div>
         </div>
+        <div class="container">
+          <div class="m-4">
+            <h4>Check GTS/GTF</h4>
+            <form id="superset-link" action="">
+              <label for="event-id">Event id:</label>
+              <input id="event-id" name="event-id" class="mr-4" type="" placeholder="Event id" value="{{ installment.contract.event_id }}">
+              <label for="from-date">From:</label>
+              <input id="from-date" name="from-date" class="m-2" type="" placeholder="From date">
+              <label for="to-date">To:</label>
+              <input id="to-date" name="to-date" class="m-2" type="" placeholder="To date">
+              <label for="currency">Currency:</label>
+              <input id="currency" name="currency" class="m-2" type="" placeholder="Currency" value="{{ SUPERSET_DEFAULT_CURRENCY }}">
+              <input class="btn btn-primary m-2" type="submit" value="Copy query">
+            </form>
+          </div>
+        </div>
         <table class="table container">
           <tr>
             <th>Condition name</th>
@@ -129,5 +145,45 @@
             e.preventDefault();
             if (confirm('Confirm delete for this file')) e.target.submit();
         });
+    </script>
+    <script>
+        $('#from-date').datepicker({
+            uiLibrary: 'bootstrap4',
+            dateFormat: 'yy-mm-dd',
+        });
+        $('#to-date').datepicker({
+            uiLibrary: 'bootstrap4',
+            dateFormat: 'yy-mm-dd',
+        });
+    </script>
+    <script>
+      let form = document.getElementById('superset-link');
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+
+        let eventId = form.querySelector('#event-id').value;
+        let fromDate = form.querySelector('#from-date').value;
+        let toDate = form.querySelector('#to-date').value;
+        let currency = form.querySelector('#currency').value;
+        let url = "{% url 'superset_query' %}/?" + $.param({"event-id": eventId, "from-date": fromDate, 'to-date': toDate, 'currency': currency})
+
+        fetch(url)
+          .then(r => r.json())
+          .then(json => {
+            let { query } = json;
+
+            // To copy the query to the clipboard, it must be put inside a temporary input
+            let temp = document.createElement('textarea');
+            temp.innerHTML = query;
+            document.body.appendChild(temp);
+            temp.select()
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+
+            let supersetURL = "https://superset.prod.dataf.eb:8443/superset/sqllab";
+            window.open(supersetURL, '_blank');
+          });
+      });
     </script>
 {% endblock content %}

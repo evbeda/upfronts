@@ -1,9 +1,12 @@
 from simple_salesforce import Salesforce
-from . import (
+from textwrap import dedent
+
+from app import (
     SF_DOMAIN,
     SF_PASSWORD,
     SF_SECURITY_TOKEN,
     SF_USERNAME,
+    SUPERSET_QUERY_DATE_FORMAT,
 )
 
 
@@ -82,3 +85,45 @@ def fetch_cases_by_date(case_date_from, case_date_to):
                     'signed_date': contract['ActivatedDate'],
                 })
     return result
+
+
+def generate_presto_query(event_id=None, from_date=None, to_date=None, currency=None):
+    currency = currency or 'BRL'
+    from_date_condition = "AND trx_date > '{}'".format(
+        from_date.strftime(SUPERSET_QUERY_DATE_FORMAT)
+    ) if from_date else ""
+    to_date_condition = "AND trx_date < '{}'".format(
+        to_date.strftime(SUPERSET_QUERY_DATE_FORMAT)
+    ) if to_date else ""
+    event_id_condition = "AND f.event_id = {}".format(event_id) if event_id else ""
+    currency = repr(currency)
+    query = dedent("""
+    SELECT  f.organizer_id,
+            f.currency,
+            u.email,
+            e.name,
+            sum(f_gts_ntv) AS f_gts_ntv,
+            sum(f_gtf_ntv) AS f_gtf_ntv,
+            sum(f_tax_ntv) AS f_tax_ntv,
+            sum(f_eb_tax_ntv) AS f_eb_tax_ntv,
+            sum(f_epp_gts_ntv) AS f_epp_gts_ntv
+
+    FROM    hive.dw.f_ticket_merchandise_purchase f
+            JOIN hive.eb.users u ON u.id = f.organizer_id
+            JOIN hive.eb.events e ON e.id = f.event_id
+
+    WHERE   is_valid = 'Y'
+            AND f.currency IN ({currency})
+            {from_date_condition}
+            {to_date_condition}
+            {event_id_condition}
+
+    GROUP BY 1,2,3,4
+    """).format(
+        from_date_condition=from_date_condition,
+        to_date_condition=to_date_condition,
+        event_id_condition=event_id_condition,
+        currency=currency,
+    )
+
+    return query

@@ -3,9 +3,8 @@ import datetime
 import io
 import mock
 
-from unittest.mock import (
-    patch,
-)
+from textwrap import dedent
+from unittest.mock import patch
 
 from django.contrib.auth.models import (
     User,
@@ -24,13 +23,15 @@ from simple_salesforce import Salesforce
 
 from app.factories import (
     ContractFactory,
+    ConditionFactory,
     InstallmentFactory,
-    ConditionFactory)
-from . import (
+    )
+from app import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
     INVALID_RECOUP_AMOUNT,
     STATUS,
+    SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.views import (
     AllInstallmentsView,
@@ -54,6 +55,7 @@ from app.models import (
 from app.utils import (
     fetch_cases,
     fetch_cases_by_date,
+    generate_presto_query,
 )
 
 
@@ -638,10 +640,10 @@ class InstallmentTest(TestCase):
             'contract': contract,
             'is_recoup': False,
             'status': 'PENDING',
-            'upfront_projection': 9000,
+            'upfront_projection': 19000,
+            'recoup_amount': 14000,
             'maximum_payment_date': '2019-09-14',
             'payment_date': '2019-09-10',
-            'recoup_amount': 14000,
             'gtf': 3500,
             'gts': 10000,
         }
@@ -690,6 +692,28 @@ class InstallmentTest(TestCase):
         )
         InstallmentDelete.as_view()(request, **kwargs)
         self.assertEqual(None, Installment.objects.first())
+
+    def test_calculate_balance(self):
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        installment_data = {
+            'contract': contract,
+            'is_recoup': False,
+            'status': 'PENDING',
+            'upfront_projection': 19000,
+            'recoup_amount': 14000,
+            'maximum_payment_date': '2019-09-14',
+            'payment_date': '2019-09-10',
+            'gtf': 3500,
+            'gts': 10000,
+        }
+        calculated_balance = installment_data['upfront_projection'] - installment_data['recoup_amount']
+        installment1 = Installment.objects.create(**installment_data)
+        self.assertEqual(calculated_balance, installment1.balance)
 
 
 class AllInstallmentsViewTest(TestCase):
@@ -799,3 +823,63 @@ class AllInstallmentsViewTest(TestCase):
 #         file_mock.name = 'test.pdf'
 #         condition_file = InstallmentCondition(upload_file=file_mock)
 #         self.assertEqual(condition_file.upload_file.name, file_mock.name)
+class PrestoQueriesTest(TestCase):
+    def test_generate_presto_query(self):
+        event_id = '1234'
+        from_date = datetime.date(2019, 3, 8)
+        to_date = datetime.date(2019, 5, 8)
+        expected_query = dedent("""
+        SELECT  f.organizer_id,
+                f.currency,
+                u.email,
+                e.name,
+                sum(f_gts_ntv) AS f_gts_ntv,
+                sum(f_gtf_ntv) AS f_gtf_ntv,
+                sum(f_tax_ntv) AS f_tax_ntv,
+                sum(f_eb_tax_ntv) AS f_eb_tax_ntv,
+                sum(f_epp_gts_ntv) AS f_epp_gts_ntv
+
+        FROM    hive.dw.f_ticket_merchandise_purchase f
+                JOIN hive.eb.users u ON u.id = f.organizer_id
+                JOIN hive.eb.events e ON e.id = f.event_id
+
+        WHERE   is_valid = 'Y'
+                AND f.currency IN ('BRL')
+                AND trx_date > '{from_date}'
+                AND trx_date < '{to_date}'
+                AND f.event_id = {event_id}
+
+        GROUP BY 1,2,3,4
+        """).format(
+            from_date=from_date.strftime(SUPERSET_QUERY_DATE_FORMAT),
+            to_date=to_date.strftime(SUPERSET_QUERY_DATE_FORMAT),
+            event_id=event_id,
+        )
+
+        result = generate_presto_query(event_id, from_date, to_date)
+
+        self.assertEqual(expected_query, result)
+
+    def test_ajax_presto_query_endpoint(self):
+        client = Client()
+        EVENT_ID = '1234'
+        FROM_DATE = '2019-10-24'
+        TO_DATE = '2019-11-24'
+
+        response = client.get(
+            reverse('superset_query'),
+            {
+                'event-id': EVENT_ID,
+                'from-date': FROM_DATE,
+                'to-date': TO_DATE,
+            }
+        )
+
+        self.assertEqual(
+            response.json()['query'],
+            generate_presto_query(
+                EVENT_ID,
+                datetime.datetime.strptime(FROM_DATE, SUPERSET_QUERY_DATE_FORMAT),
+                datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
+            )
+        )

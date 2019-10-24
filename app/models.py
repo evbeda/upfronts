@@ -41,7 +41,11 @@ class Installment(models.Model):
     gts = models.DecimalField(max_digits=19, decimal_places=4)
 
     @property
-    def edit(self):
+    def balance(self):
+        return self.upfront_projection - self.recoup_amount
+
+    @property
+    def conditions(self):
         return self
 
     @property
@@ -49,7 +53,7 @@ class Installment(models.Model):
         return self
 
     @property
-    def conditions(self):
+    def edit(self):
         return self
 
 
