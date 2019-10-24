@@ -760,6 +760,33 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
 
+    def test_all_installments_pagination_by_15_incomplete_page(self):
+
+        factory = RequestFactory()
+
+        request = factory.get(reverse('all-installments'))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        expected_number_of_elements_in_first_page = 3
+        self.assertEqual(expected_number_of_elements_in_first_page, len(response.context_data['object_list']))
+        self.assertFalse(response.context_data['is_paginated'])
+
+    def test_all_installments_pagination_by_15_complete_page(self):
+
+        factory = RequestFactory()
+
+        contract = ContractFactory()
+        installments = InstallmentFactory.create_batch(13, contract=contract)
+
+        request = factory.get(reverse('all-installments'))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        expected_number_of_elements_in_a_full_first_page = 15
+        self.assertEqual(expected_number_of_elements_in_a_full_first_page, len(response.context_data['object_list']))
+        self.assertTrue(response.context_data['is_paginated'])
+
 
 class PrestoQueriesTest(TestCase):
     def test_generate_presto_query(self):

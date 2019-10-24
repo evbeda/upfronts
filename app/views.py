@@ -28,6 +28,7 @@ from django_filters import (
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
+from pure_pagination.mixins import PaginationMixin
 
 from app import (
     BASIC_CONDITIONS,
@@ -101,11 +102,12 @@ class ContractUpdate(UpdateView):
         return context
 
 
-class ContractsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
+class ContractsTableView(LoginRequiredMixin, SingleTableMixin, PaginationMixin, FilterView):
     queryset = Contract.objects.all()
     table_class = ContractsTable
     template_name = "app/contracts_table.html"
     filterset_class = ContractsFilter
+    paginate_by = 15
 
 
 class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
@@ -355,10 +357,11 @@ class InstallmentsFilter(FilterSet):
         fields = ('search_organizer',)
 
 
-class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
+class AllInstallmentsView(LoginRequiredMixin, FilterView, PaginationMixin, ListView):
     model = Installment
     template_name = "app/all-installments.html"
     filterset_class = InstallmentsFilter
+    paginate_by = 15
 
     def get(self, request, *args, **kwargs):
         filtered_response = super().get(request, *args, **kwargs)
