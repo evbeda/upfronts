@@ -61,10 +61,6 @@ INSTALLED_APPS = [
     'django_filters',
     'django_tables2',
     'social_django',
-<<<<<<< HEAD
-    'django_extensions',
-=======
->>>>>>> Merge with master
     'pure_pagination',
 ]
 
