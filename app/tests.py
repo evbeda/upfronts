@@ -783,7 +783,7 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
 
-    def test_all_installments_pagination_by_15_incomplete_page(self):
+    def test_all_installments_pagination_incomplete_page(self):
 
         factory = RequestFactory()
 
@@ -795,12 +795,13 @@ class AllInstallmentsViewTest(TestCase):
         self.assertEqual(expected_number_of_elements_in_first_page, len(response.context_data['object_list']))
         self.assertFalse(response.context_data['is_paginated'])
 
-    def test_all_installments_pagination_by_15_complete_page(self):
+    def test_all_installments_pagination_complete_page(self):
 
         factory = RequestFactory()
 
         contract = ContractFactory()
-        InstallmentFactory.create_batch(13, contract=contract)
+        items_per_page_exceed = ITEMS_PER_PAGE + 1
+        InstallmentFactory.create_batch(items_per_page_exceed, contract=contract)
 
         request = factory.get(reverse('all-installments'))
         request.user = User.objects.create_user(
