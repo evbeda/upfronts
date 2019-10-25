@@ -1,5 +1,6 @@
 import csv
 import datetime
+import operator
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -159,30 +160,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
                 condition_name=condition,
             )
         return super(InstallmentView, self).form_valid(form)
-
-
-def download_csv(request):
-    response = HttpResponse(content_type='text/csv')
-    filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
-    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-    installments = Installment.objects.all()
-    writer = csv.writer(response)
-    for installment in installments:
-        writer.writerow([
-            installment.is_recoup,
-            installment.status,
-            installment.contract.organizer_account_name,
-            installment.contract.organizer_email,
-            installment.contract.signed_date,
-            installment.upfront_projection,
-            installment.recoup_amount,
-            installment.balance,
-            installment.maximum_payment_date,
-            installment.payment_date,
-            installment.gts,
-            installment.gtf,
-        ])
-    return response
 
 
 class ContractAdd(TemplateView):
@@ -367,20 +344,23 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
             response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
             installments = filtered_response.context_data['installment_list']
             writer = csv.writer(response)
+            fields = [
+                'is_recoup',
+                'status',
+                'contract.organizer_account_name',
+                'recoup_amount',
+                'upfront_projection',
+                'contract.organizer_email',
+                'contract.signed_date',
+                'upfront_projection',
+                'maximum_payment_date',
+                'payment_date',
+                'gts',
+                'gtf',
+            ]
+            writer.writerow(fields)
             for installment in installments:
-                writer.writerow([
-                    installment.is_recoup,
-                    installment.status,
-                    installment.contract.organizer_account_name,
-                    installment.contract.organizer_email,
-                    installment.contract.signed_date,
-                    installment.upfront_projection,
-                    installment.recoup_amount,
-                    installment.maximum_payment_date,
-                    installment.payment_date,
-                    installment.gts,
-                    installment.gtf,
-                ])
+                writer.writerow([operator.attrgetter(field)(installment) for field in fields])
             return response
         return filtered_response
 
