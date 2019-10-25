@@ -799,7 +799,7 @@ class AllInstallmentsViewTest(TestCase):
         factory = RequestFactory()
 
         contract = ContractFactory()
-        installments = InstallmentFactory.create_batch(13, contract=contract)
+        InstallmentFactory.create_batch(13, contract=contract)
 
         request = factory.get(reverse('all-installments'))
         request.user = User.objects.create_user(
