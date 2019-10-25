@@ -23,3 +23,5 @@ BASIC_CONDITIONS = ('Promissory Note', 'Bank Details', 'Payment Date', 'Funds Av
 
 SUPERSET_QUERY_DATE_FORMAT = "%Y-%m-%d"
 SUPERSET_DEFAULT_CURRENCY = 'BRL'
+
+ITEMS_PER_PAGE = 15

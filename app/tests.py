@@ -25,6 +25,7 @@ from app import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
     INVALID_RECOUP_AMOUNT,
+    ITEMS_PER_PAGE,
     STATUS,
     SUPERSET_QUERY_DATE_FORMAT,
 )
@@ -805,7 +806,7 @@ class AllInstallmentsViewTest(TestCase):
         request.user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
         response = AllInstallmentsView.as_view()(request)
-        expected_number_of_elements_in_a_full_first_page = 15
+        expected_number_of_elements_in_a_full_first_page = ITEMS_PER_PAGE
         self.assertEqual(expected_number_of_elements_in_a_full_first_page, len(response.context_data['object_list']))
         self.assertTrue(response.context_data['is_paginated'])
 

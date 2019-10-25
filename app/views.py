@@ -32,11 +32,12 @@ from pure_pagination.mixins import PaginationMixin
 
 from app import (
     BASIC_CONDITIONS,
-    SUPERSET_DEFAULT_CURRENCY,
+    ITEMS_PER_PAGE,
     LINK_TO_RECOUPS,
     LINK_TO_REPORT_EVENTS,
     LINK_TO_SEARCH_EVENT_OR_USER,
     STATUS,
+    SUPERSET_DEFAULT_CURRENCY,
     SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.models import (
@@ -107,7 +108,7 @@ class ContractsTableView(LoginRequiredMixin, SingleTableMixin, PaginationMixin, 
     table_class = ContractsTable
     template_name = "app/contracts_table.html"
     filterset_class = ContractsFilter
-    paginate_by = 15
+    paginate_by = ITEMS_PER_PAGE
 
 
 class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
@@ -360,7 +361,7 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, PaginationMixin, ListV
     model = Installment
     template_name = "app/all-installments.html"
     filterset_class = InstallmentsFilter
-    paginate_by = 15
+    paginate_by = ITEMS_PER_PAGE
 
     def get(self, request, *args, **kwargs):
         filtered_response = super().get(request, *args, **kwargs)
