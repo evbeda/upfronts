@@ -611,10 +611,10 @@ class InstallmentTest(TestCase):
             'contract': contract,
             'is_recoup': False,
             'status': 'PENDING',
-            'upfront_projection': 9000,
+            'upfront_projection': 19000,
+            'recoup_amount': 14000,
             'maximum_payment_date': '2019-09-14',
             'payment_date': '2019-09-10',
-            'recoup_amount': 14000,
             'gtf': 3500,
             'gts': 10000,
         }
@@ -663,6 +663,28 @@ class InstallmentTest(TestCase):
         )
         InstallmentDelete.as_view()(request, **kwargs)
         self.assertEqual(None, Installment.objects.first())
+
+    def test_calculate_balance(self):
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        installment_data = {
+            'contract': contract,
+            'is_recoup': False,
+            'status': 'PENDING',
+            'upfront_projection': 19000,
+            'recoup_amount': 14000,
+            'maximum_payment_date': '2019-09-14',
+            'payment_date': '2019-09-10',
+            'gtf': 3500,
+            'gts': 10000,
+        }
+        calculated_balance = installment_data['upfront_projection'] - installment_data['recoup_amount']
+        installment1 = Installment.objects.create(**installment_data)
+        self.assertEqual(calculated_balance, installment1.balance)
 
 
 class AllInstallmentsViewTest(TestCase):
