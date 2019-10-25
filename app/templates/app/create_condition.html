@@ -96,7 +96,7 @@
                   <form enctype="multipart/form-data" method="POST" action="{% url 'condition_backup_proof' installment.contract_id installment.id object.id %}">
                     {% csrf_token %}
                     <td>
-                      <input type="file" name="backup_file" accept="application/pdf, application/vnd.ms-excel, image/png, image/jpeg">
+                      <input type="file" name="backup_file" accept="application/pdf, application/vnd.ms-excel, image/png, image/jpeg, image/jpg">
                     </td>
                     <td>
                       <input type="submit" value="Upload"/>

@@ -62,7 +62,7 @@ class InstallmentCondition(models.Model):
     done = models.DateTimeField(blank=True, null=True)
     installment = models.ForeignKey(Installment, on_delete=models.CASCADE)
     upload_file = models.FileField(
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'xls', 'png',  'jpeg'])],
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'xls', 'png',  'jpeg', 'jpg'])],
         blank=True,
     )
 
