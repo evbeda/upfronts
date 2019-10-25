@@ -1,22 +1,19 @@
 import csv
 import datetime
 import io
-<<<<<<< HEAD
-from textwrap import dedent
-from unittest.mock import patch
-=======
 import mock
+from textwrap import dedent
 from unittest.mock import (
     MagicMock,
     patch,
 )
->>>>>>> Add a proof file for each condition
 
 from django.contrib.auth.models import (
     User,
 )
 from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.core.files.storage import Storage
 from django.test import (
     Client,
     RequestFactory,
@@ -29,6 +26,7 @@ from simple_salesforce import Salesforce
 from app.factories import (
     ContractFactory,
     InstallmentFactory,
+    InstallmentConditionFactory,
 )
 from app import (
     INVALID_SIGN_DATE,
@@ -40,6 +38,7 @@ from app import (
 )
 from app.views import (
     AllInstallmentsView,
+    ConditionBackupProofView,
     ConditionView,
     ContractAdd,
     ContractsFilter,
@@ -792,7 +791,6 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
 
-<<<<<<< HEAD
     def test_all_installments_pagination_incomplete_page(self):
 
         factory = RequestFactory()
@@ -882,12 +880,11 @@ class PrestoQueriesTest(TestCase):
                 datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
             )
         )
-=======
+
 
 class UploadBackUpFilesTest(TestCase):
 
     def setUp(self):
-        c = Client()
         self.file_mock = MagicMock(spec=File)
 
     def test_file_field(self):
@@ -895,4 +892,25 @@ class UploadBackUpFilesTest(TestCase):
         file_mock.name = 'test.pdf'
         condition_file = InstallmentCondition(upload_file=file_mock)
         self.assertEqual(condition_file.upload_file.name, file_mock.name)
->>>>>>> Add a proof file for each condition
+
+    def test_post_file(self):
+        file_mock = mock.MagicMock(spec=File, name='FileMock')
+        file_mock.name = 'test.pdf'
+        condition = InstallmentConditionFactory.create()
+        condition.upload_file = file_mock
+        storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
+        storage_mock.url = mock.MagicMock(name='url')
+        storage_mock.url.return_value = '/tmp/test.pdf'
+        with mock.patch('django.core.files.storage.default_storage._wrapped', storage_mock):
+            condition.save()
+        factory = RequestFactory()
+        kwargs = {
+            'contract_id': condition.installment.contract_id,
+            'installment_id': condition.installment.id,
+            'condition_id': condition.id,
+        }
+        request = factory.post(
+            reverse('condition_backup_proof', kwargs=kwargs)
+        )
+        response = ConditionBackupProofView.as_view()(request, **kwargs)
+        self.assertEqual(response.status_code, 302)

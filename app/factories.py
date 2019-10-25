@@ -35,3 +35,11 @@ class InstallmentFactory(DjangoModelFactory):
     recoup_amount = 736372
     gtf = 873456
     gts = 346897
+
+
+class InstallmentConditionFactory(DjangoModelFactory):
+    class Meta:
+        model = models.InstallmentCondition
+
+    installment = SubFactory(InstallmentFactory)
+    condition_name = "Promissory note"

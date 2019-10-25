@@ -255,13 +255,9 @@ class ConditionView(LoginRequiredMixin, CreateView):
         installment = Installment.objects.filter(id=self.kwargs['installment_id']).get()
 
         context['installment'] = installment
-<<<<<<< HEAD
         context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
         context['SUPERSET_DEFAULT_CURRENCY'] = SUPERSET_DEFAULT_CURRENCY
 
-=======
-        context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id'])
->>>>>>> Add a proof file for each condition
         return context
 
     def get_success_url(self):
