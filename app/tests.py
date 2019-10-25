@@ -820,6 +820,40 @@ class AllInstallmentsViewTest(TestCase):
         self.assertTrue(response.context_data['is_paginated'])
 
 
+class UploadBackUpFilesTest(TestCase):
+
+    def setUp(self):
+        self.file_mock = MagicMock(spec=File)
+
+    def test_file_field(self):
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.pdf'
+        condition_file = InstallmentCondition(upload_file=file_mock)
+        self.assertEqual(condition_file.upload_file.name, file_mock.name)
+
+    def test_post_file(self):
+        file_mock = mock.MagicMock(spec=File, name='FileMock')
+        file_mock.name = 'test.pdf'
+        condition = InstallmentConditionFactory.create()
+        condition.upload_file = file_mock
+        storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
+        storage_mock.url = mock.MagicMock(name='url')
+        storage_mock.url.return_value = '/tmp/test.pdf'
+        with mock.patch('django.core.files.storage.default_storage._wrapped', storage_mock):
+            condition.save()
+        factory = RequestFactory()
+        kwargs = {
+            'contract_id': condition.installment.contract_id,
+            'installment_id': condition.installment.id,
+            'condition_id': condition.id,
+        }
+        request = factory.post(
+            reverse('condition_backup_proof', kwargs=kwargs)
+        )
+        response = ConditionBackupProofView.as_view()(request, **kwargs)
+        self.assertEqual(response.status_code, 302)
+
+
 class PrestoQueriesTest(TestCase):
     def test_generate_presto_query(self):
         event_id = '1234'
@@ -880,37 +914,3 @@ class PrestoQueriesTest(TestCase):
                 datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
             )
         )
-
-
-class UploadBackUpFilesTest(TestCase):
-
-    def setUp(self):
-        self.file_mock = MagicMock(spec=File)
-
-    def test_file_field(self):
-        file_mock = mock.MagicMock(spec=File)
-        file_mock.name = 'test.pdf'
-        condition_file = InstallmentCondition(upload_file=file_mock)
-        self.assertEqual(condition_file.upload_file.name, file_mock.name)
-
-    def test_post_file(self):
-        file_mock = mock.MagicMock(spec=File, name='FileMock')
-        file_mock.name = 'test.pdf'
-        condition = InstallmentConditionFactory.create()
-        condition.upload_file = file_mock
-        storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
-        storage_mock.url = mock.MagicMock(name='url')
-        storage_mock.url.return_value = '/tmp/test.pdf'
-        with mock.patch('django.core.files.storage.default_storage._wrapped', storage_mock):
-            condition.save()
-        factory = RequestFactory()
-        kwargs = {
-            'contract_id': condition.installment.contract_id,
-            'installment_id': condition.installment.id,
-            'condition_id': condition.id,
-        }
-        request = factory.post(
-            reverse('condition_backup_proof', kwargs=kwargs)
-        )
-        response = ConditionBackupProofView.as_view()(request, **kwargs)
-        self.assertEqual(response.status_code, 302)

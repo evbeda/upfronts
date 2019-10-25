@@ -61,7 +61,10 @@ INSTALLED_APPS = [
     'django_filters',
     'django_tables2',
     'social_django',
+<<<<<<< HEAD
     'django_extensions',
+=======
+>>>>>>> Merge with master
     'pure_pagination',
 ]
 
@@ -164,3 +167,10 @@ PAGINATION_SETTINGS = {
 DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
 DROPBOX_OAUTH2_TOKEN = get_env_variable('DROPBOX_OAUTH2_TOKEN')
 DROPBOX_ROOT_PATH = '/Backup_Files'
+
+PAGINATION_SETTINGS = {
+    'PAGE_RANGE_DISPLAYED': 3,
+    'MARGIN_PAGES_DISPLAYED': 2,
+
+    'SHOW_FIRST_PAGE_WHEN_INVALID': True,
+}
