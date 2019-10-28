@@ -25,8 +25,8 @@ from simple_salesforce import Salesforce
 
 from app.factories import (
     ContractFactory,
-    InstallmentFactory,
     InstallmentConditionFactory,
+    InstallmentFactory,
 )
 from app import (
     INVALID_SIGN_DATE,
@@ -829,6 +829,7 @@ class UploadBackUpFilesTest(TestCase):
         file_mock = mock.MagicMock(spec=File)
         file_mock.name = 'test.pdf'
         condition_file = InstallmentCondition(upload_file=file_mock)
+
         self.assertEqual(condition_file.upload_file.name, file_mock.name)
 
     def test_post_file(self):
@@ -839,6 +840,7 @@ class UploadBackUpFilesTest(TestCase):
         storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
         storage_mock.url = mock.MagicMock(name='url')
         storage_mock.url.return_value = '/tmp/test.pdf'
+
         with mock.patch('django.core.files.storage.default_storage._wrapped', storage_mock):
             condition.save()
         factory = RequestFactory()
@@ -851,6 +853,7 @@ class UploadBackUpFilesTest(TestCase):
             reverse('condition_backup_proof', kwargs=kwargs)
         )
         response = ConditionBackupProofView.as_view()(request, **kwargs)
+
         self.assertEqual(response.status_code, 302)
 
 
