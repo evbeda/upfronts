@@ -30,23 +30,39 @@
               {% endfor %}
             </div>
             {% endif %}
-                <div class="row justify-content-center m-3">
-                    <div class="card" style="width: 50rem;">
-                      <div class="card-body">
-                        <h5 class="card-title">Installment</h5>
-                        <p class="card-text">
-                          <li class="m-2"> <b>Organizer: </b> {{ installment.contract.organizer_account_name }}</li>
-                          <li class="m-2"> <b>Recoupable: </b> {{ installment.is_recoup }}</li>
-                          <li class="m-2"> <b>Max payment date: </b> {{ installment.maximum_payment_date }}</li>
-                          <li class="m-2"> <b>Upfront projection: </b> {{ installment.upfront_projection }}</li>
-                          <li class="m-2"> <b>Recoup amount: </b> {{ installment.recoup_amount }}</li>
-                          <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
-                          <li class="m-2"> <b>GTF: </b> {{ installment.gtf }}</li>
-                          <li class="m-2"> <b>GTS: </b> {{ installment.gts }}</li>
-                        </p>
-                      </div >
-                    </div>
-            </div>
+              <div class="row justify-content-center m-3">
+                  <div class="card" style="width: 50rem;">
+                    <div class="card-body">
+                      <h5 class="card-title">Installment</h5>
+                      <p class="card-text">
+                        <li class="m-2"> <b>Organizer: </b> {{ installment.contract.organizer_account_name }}</li>
+                        <li class="m-2"> <b>Recoupable: </b> {{ installment.is_recoup }}</li>
+                        <li class="m-2"> <b>Max payment date: </b> {{ installment.maximum_payment_date }}</li>
+                        <li class="m-2"> <b>Upfront projection: </b> {{ installment.upfront_projection }}</li>
+                        <li class="m-2"> <b>Recoup amount: </b> {{ installment.recoup_amount }}</li>
+                        <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
+                        <li class="m-2"> <b>GTF: </b> {{ installment.gtf }}</li>
+                        <li class="m-2"> <b>GTS: </b> {{ installment.gts }}</li>
+                      </p>
+                    </div >
+                  </div>
+              </div>
+              <div class="container">
+                <div class="m-4">
+                  <h4>Check GTS/GTF</h4>
+                  <form id="superset-link" action="">
+                    <label for="event-id">Event id:</label>
+                    <input id="event-id" name="event-id" class="mr-4" type="" placeholder="Event id" value="{{ installment.contract.event_id }}">
+                    <label for="from-date">From:</label>
+                    <input id="from-date" name="from-date" class="m-2" type="" placeholder="From date">
+                    <label for="to-date">To:</label>
+                    <input id="to-date" name="to-date" class="m-2" type="" placeholder="To date">
+                    <label for="currency">Currency:</label>
+                    <input id="currency" name="currency" class="m-2" type="" placeholder="Currency" value="{{ SUPERSET_DEFAULT_CURRENCY }}">
+                    <input class="btn btn-primary m-2" type="submit" value="Copy query">
+                  </form>
+                </div>
+              </div>
             <table class="table container">
               <tr>
                 <th>Condition name</th>
