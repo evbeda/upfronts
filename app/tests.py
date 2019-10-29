@@ -35,6 +35,8 @@ from app.views import (
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
+    CreateEvent,
+    DetailContractView,
     InstallmentDelete,
     InstallmentsFilter,
     InstallmentUpdate,
@@ -44,6 +46,7 @@ from app.views import (
 )
 from app.models import (
     Contract,
+    Event,
     Installment,
     InstallmentCondition,
 )
@@ -323,10 +326,10 @@ class UpdateContractTest(TestCase):
             'signed_date': '2019-09-14',
         }
         contract = Contract.objects.create(**contract_data)
-        contract_data['event_id'] = '234523'
+        contract_data['user_id'] = '234523'
         request = factory.post(
             reverse('contracts-update', args=[contract.id]), contract_data, content_type='application/json')
-        self.assertIn(bytes(contract_data['event_id'], encoding='utf-8'), request.body)
+        self.assertIn(bytes(contract_data['user_id'], encoding='utf-8'), request.body)
 
 
 class TestDownloadCsv(TestCase):
@@ -872,3 +875,40 @@ class PrestoQueriesTest(TestCase):
                 datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
             )
         )
+
+
+class DetailContractTest(TestCase):
+
+    def test_detail_contract(self):
+        contract = ContractFactory()
+        event = Event.objects.create(
+            event_name="Festival",
+            event_id="8523iuw98",
+            contract=contract,
+        )
+        factory = RequestFactory()
+        kwargs = {'pk': contract.id}
+        request = factory.get(reverse('contracts-detail', args=[contract.id]))
+        response = DetailContractView.as_view()(request, **kwargs)
+        resp = response.render()
+        self.assertIn(bytes(contract.organizer_email, encoding='utf-8'), resp.content)
+        self.assertIn(bytes(contract.organizer_account_name, encoding='utf-8'), resp.content)
+        self.assertIn(bytes(event.event_name, encoding='utf-8'), resp.content)
+
+
+class CreateEventTest(TestCase):
+
+    def test_create_event(self):
+        contract = ContractFactory()
+        factory = RequestFactory()
+        kwargs = {'contract_id': contract.id}
+        event_data = {
+            'Event Name': 'Festival',
+            'Event id': '235fj35a',
+            'Contract': contract,
+        }
+        request = factory.post(reverse('events-create', args=[contract.id]), event_data)
+        CreateEvent.as_view()(request, **kwargs)
+        event = contract.events.all().get()
+        self.assertEqual(event_data['Event id'], event.event_id)
+        self.assertEqual(event_data['Event Name'], event.event_name)

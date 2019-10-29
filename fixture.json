@@ -1,0 +1,65 @@
+
+[
+	{
+		"model": "app.contract",
+		"pk": 10,
+		"fields": {
+			"organizer_account_name": "Planner Eventos",
+			"organizer_email": "pepe@planner.com",
+			"signed_date": "2019-09-14",
+			"case_number": "35423"
+		}
+
+	},
+	{
+		"model": "app.contract",
+		"pk": 22,
+		"fields": {
+			"organizer_account_name": "Brasil Eventos",
+			"organizer_email": "Brasil@planner.com",
+			"signed_date": "2019-09-14",
+			"event_id": "240583",
+			"case_number": "53489"
+		}
+
+	},
+	{
+		"model": "app.contract",
+		"pk": 33,
+		"fields": {
+			"organizer_account_name": "Organizer Eventos",
+			"organizer_email": "someorganizer@planner.com",
+			"signed_date": "2019-09-14",
+			"event_id": "853493",
+			"case_number": "30894"
+		}
+
+	},
+	{
+		"model": "app.event",
+		"pk": 6,
+    	"fields": {
+			"contract": 10,
+			"event_id": "803574",
+			"event_name": "Family day"
+		}
+	},
+	{
+		"model": "app.event",
+		"pk": 7,
+    	"fields": {
+			"contract": 10,
+			"event_id": "80357hdf4",
+			"event_name": "some day"
+		}
+	},
+	{
+		"model": "app.event",
+		"pk": 8,
+    	"fields": {
+			"contract": 10,
+			"event_id": "8035735134",
+			"event_name": "Festival day"
+		}
+	}
+]

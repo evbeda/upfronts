@@ -1,0 +1,22 @@
+.inline {
+    display:inline;
+}
+.indent {
+    text-indent: 100px;
+}
+.indent-events {
+    text-indent: 150px;
+}
+.indent-form {
+    margin-left: 100px;
+}
+.margin-button-edit {
+    margin-top: 10px;
+}
+.margin-link {
+    margin-top: 15px;
+}
+.margin-delete {
+    margin-top: 4px;
+    margin-left: 15px;
+}

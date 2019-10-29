@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% load static %}
+{% bootstrap_css %}
+{% block head %}
+    {{ block.super }}
+    <script src="{% static 'js/create_installment.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/detail_contract.css' %}">
+{% endblock %}
+
+{% block title %} Create installment {% endblock title %}
+
+{% block content %}
+    <div class='m-5 p-3'>
+        <div class="row m-2">
+            <div class="col-5">
+                <h1>Contract information</h1>
+            </div>
+            <div class="col-6 margin-link">
+                <a href="{{info_event_url}}"><b>Search for user or event id</b></a>
+            </div>
+            <div class="col margin-button-edit">
+                <a href="{% url 'contracts-update' contract.id %}" role="button" class="btn btn-outline-success"><i class="far fa-edit"></i>  Edit</a>
+            </div>
+        </div>
+        <div class="jumbotron">
+            <p class="lead indent"><b>Account name: </b> {{contract.organizer_account_name}}</p>
+            <p class="lead indent"><b>Email: </b> {{contract.organizer_email}}</p>
+            <p class="lead indent"><b>Signed date: </b>{{contract.signed_date}}</p>
+            {% if contract.user_id %}
+                <p class="lead indent"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></p>
+            {% endif %}
+            <p class="lead indent"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></p>
+            <p class="lead indent">
+                <b>Events:</b>
+            </p>
+            {% for event in events %}
+            <p class="lead indent">
+                <ul style="list-style-type:none">
+                    <li class="lead indent-events"><a href="{{event.link_to_event}}" target="_blank">{{event.event_name}}</a></li>
+                </ul>
+            </p>
+            {% endfor %}
+            <div class="lead indent-form">
+                <form action="{% url 'events-create' contract.id %}" method="POST">{% csrf_token %}
+                    <div class="form-group row">
+                        <div class="col-sm-3">
+                            <input id="event_name" type="text" class="form-control" name="Event Name" value="" placeholder="Event name">
+                        </div>
+                        <div class="col-sm-3">
+                            <input id="event_id" class="form-control" type="text" name="Event id" value="" placeholder="Event id">
+                        </div>
+                        <input type='submit' class="btn btn-outline-primary" value='Save'/>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
+    </div>
+{% endblock content %}
