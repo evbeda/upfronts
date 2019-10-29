@@ -824,24 +824,22 @@ class UploadBackUpFilesTest(TestCase):
 
     def setUp(self):
         self.file_mock = MagicMock(spec=File)
+        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        self.file_mock.name = 'test.pdf'
+        self.storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
+        self.storage_mock.url = mock.MagicMock(name='url')
+        self.storage_mock.url.return_value = '/tmp/test.pdf'
 
     def test_file_field(self):
-        file_mock = mock.MagicMock(spec=File)
-        file_mock.name = 'test.pdf'
-        condition_file = InstallmentCondition(upload_file=file_mock)
+        condition_file = InstallmentCondition(upload_file=self.file_mock)
 
-        self.assertEqual(condition_file.upload_file.name, file_mock.name)
+        self.assertEqual(condition_file.upload_file.name, self.file_mock.name)
 
     def test_post_file(self):
-        file_mock = mock.MagicMock(spec=File, name='FileMock')
-        file_mock.name = 'test.pdf'
         condition = InstallmentConditionFactory.create()
-        condition.upload_file = file_mock
-        storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
-        storage_mock.url = mock.MagicMock(name='url')
-        storage_mock.url.return_value = '/tmp/test.pdf'
+        condition.upload_file = self.file_mock
 
-        with mock.patch('django.core.files.storage.default_storage._wrapped', storage_mock):
+        with mock.patch('django.core.files.storage.default_storage._wrapped', self.storage_mock):
             condition.save()
         factory = RequestFactory()
         kwargs = {
