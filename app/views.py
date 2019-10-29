@@ -338,9 +338,9 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
 
     def get(self, request, *args, **kwargs):
         filtered_response = super().get(request, *args, **kwargs)
-        if 'download' in filtered_response.context_data['url']:
+        if self.request.GET.get('download'):
             response = HttpResponse(content_type='text/csv')
-            filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
+            filename = "{}-installments.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
             response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
             installments = filtered_response.context_data['installment_list']
             writer = csv.writer(response)
@@ -350,6 +350,7 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
                 'contract.organizer_account_name',
                 'recoup_amount',
                 'upfront_projection',
+                'balance',
                 'contract.organizer_email',
                 'contract.signed_date',
                 'upfront_projection',
@@ -366,7 +367,6 @@ class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['url'] = self.request.get_full_path()
         return context
 
 

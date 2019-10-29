@@ -8,8 +8,6 @@ from django.contrib.auth.views import (
     LogoutView,
 )
 
-from app import views
-
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/login/$', LoginView.as_view(template_name='registration/login.html'), name='login'),

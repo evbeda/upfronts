@@ -5,7 +5,6 @@
 {% block head %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/installment_table.css' %}">
-  <script src="{% static 'js/all-installments.js' %}"></script>
 {% endblock %}
 
 {% block title %} Installments {% endblock title %}
@@ -75,11 +74,12 @@
               Export to
           </button>
           <div class="dropdown-menu dropdown-menu-right">
-              <a class="dropdown-item" href="{{url}}&download=true"><i class="fas fa-file-csv"></i> CSV</a>
-              <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
+            <a id="export-csv" class="dropdown-item" href=""><i class="fas fa-file-csv"></i> CSV</a>
+            <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
           </div>
       </div>
     </div>
     <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
   </div>
+  <script src="{% static 'js/all-installments.js' %}"></script>
 {% endblock content %}

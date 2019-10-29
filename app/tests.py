@@ -332,35 +332,24 @@ class TestDownloadCsv(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.expected_upfront_dict = {
-            'is_recoup': 'True',
+        self.contract_data = {
+            'organizer_account_name': 'EDA',
+            'organizer_email': 'juan@eventbrite.com',
+            'signed_date': '2019-04-04',
+        }
+        self.contract = Contract.objects.create(**self.contract_data)
+        self.installment_data = {
+            'contract_id': self.contract.id,
+            'is_recoup': True,
             'status': 'COMMITED/APPROVED',
-            'account_name': 'EDA',
-            'email_organizer': 'juan@eventbrite.com',
-            'upfront_projection': '77777.0000',
-            'contract_signed_date': '2019-04-04',
+            'upfront_projection': 77777,
             'maximum_payment_date': '2019-05-30',
             'payment_date': '2019-05-05',
-            'recoup_amount': '55555.0000',
-            'gtf': '7000.0000',
-            'gts': '100000.0000',
+            'recoup_amount': 55555,
+            'gtf': 100000,
+            'gts': 7000,
         }
-        self.contract = Contract.objects.create(
-            organizer_account_name='EDA',
-            organizer_email='juan@eventbrite.com',
-            signed_date='2019-04-04',
-        )
-        Installment.objects.create(
-            contract=self.contract,
-            is_recoup=True,
-            status='COMMITED/APPROVED',
-            upfront_projection=77777,
-            maximum_payment_date='2019-05-30',
-            payment_date='2019-05-05',
-            recoup_amount=55555,
-            gtf=100000,
-            gts=7000,
-        )
+        self.installment = Installment.objects.create(**self.installment_data)
 
     def test_status_code_200(self):
         request = self.factory.get(reverse('all-installments'))
@@ -371,31 +360,40 @@ class TestDownloadCsv(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_download_csv(self):
-        request = self.factory.get(reverse('all-installments'))
-        request.path = request.path + '?download=true'
-        request.user = User.objects.create_user(
+        user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
-        response = AllInstallmentsView.as_view()(request)
-        self.assertEqual('text/csv', dict(response.items())['Content-Type'])
-        self.assertIn('-upfronts.csv', dict(response.items())['Content-Disposition'])
+        self.client.force_login(user)
+        kwargs = {
+            'download': 'true',
+        }
+
+        response = self.client.get(reverse('all-installments'), kwargs)
+
+        self.assertEqual('text/csv', response.get('Content-Type'))
+        self.assertIn('-installments.csv', response.get('Content-Disposition'))
 
     def test_download_csv_without_filter(self):
-        request = self.factory.get(reverse('all-installments')+'?download=true')
-        request.user = User.objects.create_user(
+        user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
-        response = AllInstallmentsView.as_view()(request)
-        response_decode = response.content.decode('utf-8')
-        csv_list = csv.reader(io.StringIO(response_decode))
-        for row in csv_list:
-            csv_set = set(row)
-        expected_csv_set = set(list(self.expected_upfront_dict.values()))
-        self.assertEqual(csv_set, expected_csv_set)
+        kwargs = {
+            'download': 'true',
+        }
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('all-installments'), kwargs)
+        decoded_response = response.content.decode('utf-8')
+        reader = csv.reader(io.StringIO(decoded_response))
+        next(reader)
+        csv_rows = [row for row in reader]
+        self.assertEqual(len(Installment.objects.all()), len(csv_rows))
 
     def test_download_csv_with_filter(self):
+        FILTERED_STATUS = 'COMMITED/APPROVED'
+        NON_FILTERED_STATUS = 'PENDING'
         Installment.objects.create(
             contract=self.contract,
             is_recoup=True,
-            status='PENDING',
+            status=NON_FILTERED_STATUS,
             upfront_projection=77777,
             maximum_payment_date='2019-05-30',
             payment_date='2019-05-05',
@@ -403,20 +401,24 @@ class TestDownloadCsv(TestCase):
             gtf=100000,
             gts=7000,
         )
-        request = self.factory.get(
-            reverse('all-installments') +
-            '?search_organizer=&djfdate_time_signed_date=&djfdate_time_max_payment_date='
-            '&djfdate_ttime_payment_date=&status=COMMITED%2FAPPROVED&download=true'
-        )
-        request.user = User.objects.create_user(
+        user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
-        response = AllInstallmentsView.as_view()(request)
-        response_decode = response.content.decode('utf-8')
-        csv_list = csv.reader(io.StringIO(response_decode))
-        for row in csv_list:
-            csv_set = set(row)
-        expected_csv_set = set(list(self.expected_upfront_dict.values()))
-        self.assertEqual(csv_set, expected_csv_set)
+        kwargs = {
+            'search_organizer': '',
+            'djfdate_time_signed_date': '',
+            'djfdate_time_max_payment_date': '',
+            'djfdate_ttime_payment_date': '',
+            'status': FILTERED_STATUS,
+            'download': 'true',
+        }
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('all-installments'), kwargs)
+
+        decoded_response = response.content.decode('utf-8')
+        reader = csv.DictReader(io.StringIO(decoded_response))
+        for row in reader:
+            self.assertEqual(row['status'], FILTERED_STATUS)
 
 
 class FetchCaseTests(TestCase):
