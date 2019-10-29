@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django_filters',
     'social_django',
     'django_extensions',
+    'pure_pagination',
 ]
 
 MIDDLEWARE = [
@@ -149,3 +150,10 @@ SOCIAL_AUTH_EVENTBRITE_KEY = get_env_variable('SOCIAL_AUTH_EVENTBRITE_KEY')
 SOCIAL_AUTH_EVENTBRITE_SECRET = get_env_variable(
     'SOCIAL_AUTH_EVENTBRITE_SECRET',
 )
+
+PAGINATION_SETTINGS = {
+    'PAGE_RANGE_DISPLAYED': 3,
+    'MARGIN_PAGES_DISPLAYED': 2,
+
+    'SHOW_FIRST_PAGE_WHEN_INVALID': True,
+}

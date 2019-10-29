@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load bootstrap4 %}
 {% load static %}
 {% bootstrap_css %}
@@ -68,6 +69,7 @@
       {% else %}
         <p class="lead m-5 "> No installment was found.</p>
       {% endif %}
+    {% include "_pagination.html" %}
     <div class="float-right ml-2" >
       <div class="dropdown">
           <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown">
