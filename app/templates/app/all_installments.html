@@ -15,17 +15,16 @@
   <div class="p-3">
     <div class="m-2">
       <h1>Installments</h1>
-      <div class="mt-4">
-        {% if filter %}
-          <form action="" method="get" class="form form-inline">
-            {% bootstrap_form filter.form layout='inline' %}
-            <button type="submit" class="btn btn-primary datep"><i class="fab fa-sistrix"></i></button>
-          </form>
-        {% endif %}
-      </div>
     </div>
-    <div class="container-fluid fixtable mt-5">
       {% if installment_list %}
+        <div class="mt-4">
+          {% if filter %}
+            <form action="" method="get" class="form form-inline">
+              {% bootstrap_form filter.form layout='inline' %}
+              <button type="submit" class="btn btn-primary datep"><i class="fab fa-sistrix"></i></button>
+            </form>
+          {% endif %}
+        </div>
         <table class="table">
           <thead>
             <tr>
@@ -67,21 +66,25 @@
           </tbody>
         </table>
       </div>
-      {% else %}
-        <p class="lead m-5 "> No installment was found.</p>
-      {% endif %}
-    {% include "_pagination.html" %}
-    <div class="float-right ml-2" >
-      <div class="dropdown">
-          <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown">
-              Export to
-          </button>
-          <div class="dropdown-menu dropdown-menu-right">
-              <a class="dropdown-item" href="{{url}}&download=true"><i class="fas fa-file-csv"></i> CSV</a>
-              <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
-          </div>
+      {% include "_pagination.html" %}
+      <div class="float-right ml-2" >
+        <div class="dropdown">
+            <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown">
+                Export to
+            </button>
+            <div class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="{{url}}&download=true"><i class="fas fa-file-csv"></i> CSV</a>
+                <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
+            </div>
+        </div>
       </div>
-    </div>
+      {% else %}
+      <div class="jumbotron jumbotron-fluid empty-state">
+        <div class="container">
+          <h1 class="display-4">Oops!</h1>
+          <p class="lead">There are no installments yet. See saved contracts <a href="{% url 'contracts' %}">here</a>.</p>
+        </div>
+      </div>
+      {% endif %}
     <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
-  </div>
 {% endblock content %}
