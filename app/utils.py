@@ -1,3 +1,6 @@
+import os
+import requests
+
 from simple_salesforce import Salesforce
 from textwrap import dedent
 
@@ -85,6 +88,48 @@ def fetch_cases_by_date(case_date_from, case_date_to):
                     'signed_date': contract['ActivatedDate'],
                 })
     return result
+
+
+def get_contract_attachments(contract_id):
+    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain=SF_DOMAIN)
+    attachments = sf.query(
+        "SELECT Id, Name, ContentType from Attachment WHERE ParentId = '{}'".format(contract_id))['records']
+
+    result = []
+
+    for attachment in attachments:
+        import ipdb; ipdb.set_trace()
+        result.append({
+            'salesforce_id': attachment['Id'],
+            'name': attachment['Name'],
+            'content_type': attachment['ContentType'],
+        })
+
+    return result
+
+
+def fetch_contracts_attachment(attachment_id):
+    sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain=SF_DOMAIN)
+    sessionId = sf.session_id
+    instance = sf.sf_instance
+    print ('sessionId: ' + sessionId)
+    print ('instance: ' + instance)
+    attachments = sf.query(
+        "SELECT Id, Name, Body from Attachment WHERE ParentId = '{}' LIMIT 1".format('80039000001waOdAAI'))['records']
+    filename = attachments[0]['Name']
+    fileid = attachments[0]['Id']
+    print('filename: ' + filename)
+    print('fileid: ' + fileid)
+    response = requests.get('https://' + instance + '/services/data/v39.0/sobjects/Attachment/' + fileid + '/body',
+        headers = { 'Content-Type': 'application/pdf', 'Authorization': 'Bearer ' + sessionId })
+    f1 = open(filename, "wb")
+    f1.write(response.content)
+    f1.close()
+    print('output file: '  + os.path.realpath(f1.name))
+    response.close()
+
+    import ipdb; ipdb.set_trace()
+    return f1
 
 
 def generate_presto_query(event_id=None, from_date=None, to_date=None, currency=None):

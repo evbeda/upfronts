@@ -63,3 +63,10 @@ class InstallmentCondition(models.Model):
     def toggle_done(self):
         self.done = None if self.done else datetime.datetime.now()
         self.save()
+
+
+class Attachment(models.Model):
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
+    salesforce_id = models.CharField(max_length=40)
+    name = models.CharField(max_length=80)
+    content_type = models.CharField(max_length=40)
