@@ -823,36 +823,50 @@ class AllInstallmentsViewTest(TestCase):
 class UploadBackUpFilesTest(TestCase):
 
     def setUp(self):
-        self.file_mock = MagicMock(spec=File)
-        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
-        self.file_mock.name = 'test.pdf'
-        self.storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
-        self.storage_mock.url = mock.MagicMock(name='url')
-        self.storage_mock.url.return_value = '/tmp/test.pdf'
+        # self.file_mock = MagicMock(spec=File)
+        # self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        # self.file_mock.name = 'test.pdf'
+        pass
 
-    def test_file_field(self):
-        condition_file = InstallmentCondition(upload_file=self.file_mock)
+    @mock.patch('django.core.files.storage.default_storage._wrapped')
+    def test_file_field(self, storage_mock):
+
+        condition_file = InstallmentConditionFactory.create()
+        from factory.django import FileField
+        condition_file.upload_file = FileField(filename='asd.pdf').generate()
+        import ipdb; ipdb.set_trace()
+        condition_file.save()
 
         self.assertEqual(condition_file.upload_file.name, self.file_mock.name)
 
-    def test_post_file(self):
-        condition = InstallmentConditionFactory.create()
-        condition.upload_file = self.file_mock
+    # @mock.patch('django.core.files.storage.default_storage._wrapped')
+    # def test_save_file(self, storage_mock):
+    #     # self.file_mock = MagicMock(spec=File)
+    #     # self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+    #     # self.file_mock.name = 'test.pdf'
+    #     # storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
+    #     # storage_mock.url = mock.MagicMock(name='url')
+    #     # storage_mock.url.return_value = '/tmp/test.pdf'
+    #     condition2 = InstallmentConditionFactory.create()
+        # condition2.upload_file = self.file_mock
 
-        with mock.patch('django.core.files.storage.default_storage._wrapped', self.storage_mock):
-            condition.save()
-        factory = RequestFactory()
-        kwargs = {
-            'contract_id': condition.installment.contract_id,
-            'installment_id': condition.installment.id,
-            'condition_id': condition.id,
-        }
-        request = factory.post(
-            reverse('condition_backup_proof', kwargs=kwargs)
-        )
-        response = ConditionBackupProofView.as_view()(request, **kwargs)
+    #     condition2.save()
+    #     import ipdb; ipdb.set_trace()
+    #     self.assertEqual(condition2.upload_file.name, 'lala.txt')
 
-        self.assertEqual(response.status_code, 302)
+    # def test_render_view_with_file(self):
+    #     factory = RequestFactory()
+    #     kwargs = {
+    #         'contract_id': condition.installment.contract_id,
+    #         'installment_id': condition.installment.id,
+    #         'condition_id': condition.id,
+    #     }
+    #     request = factory.post(
+    #         reverse('condition_backup_proof', kwargs=kwargs)
+    #     )
+    #     response = ConditionBackupProofView.as_view()(request, **kwargs)
+
+    #     self.assertEqual(response.status_code, 302)
 
 
 class PrestoQueriesTest(TestCase):

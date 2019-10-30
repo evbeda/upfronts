@@ -2,7 +2,7 @@ from factory import (
     DjangoModelFactory,
     SubFactory,
 )
-
+from factory.django import FileField
 from django.utils import timezone
 
 from . import models
