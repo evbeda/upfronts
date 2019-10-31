@@ -20,12 +20,12 @@
     margin-top: 4px;
     margin-left: 15px;
 }
-table td {
+.table-td-event-list {
     overflow: hidden;
     display: inline-block;
     word-wrap:break-word;
 }
-.table-td-event {
+.table-td-event-name {
     width: 500px;
 }
 .table-td-trash {

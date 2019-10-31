@@ -4,7 +4,7 @@
 {% bootstrap_css %}
 {% block head %}
     {{ block.super }}
-    <script src="{% static 'js/create_installment.js' %}"></script>
+    <script src="{% static 'js/detail_contract.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/detail_contract.css' %}">
 {% endblock %}
 
@@ -57,10 +57,10 @@
                 <form action="{% url 'events-create' contract.id %}" method="POST">{% csrf_token %}
                     <div class="form-group row">
                         <div class="col-sm-3">
-                            <input id="event_name" type="text" class="form-control" name="Event Name" value="" placeholder="Event name">
+                            <input id="event_name" type="text" class="form-control" name="Event Name" placeholder="Event name">
                         </div>
                         <div class="col-sm-3">
-                            <input id="event_id" class="form-control" type="text" name="Event id" value="" placeholder="Event id">
+                            <input id="event_id" class="form-control" type="text" name="Event id" placeholder="Event id">
                         </div>
                         <input type='submit' class="btn btn-outline-primary" value='Save'/>
                     </div>
@@ -69,10 +69,4 @@
         </div>
         <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
     </div>
-    <script>
-        $('.delete-file-form').submit(e => {
-            e.preventDefault();
-            if (confirm('Confirm delete for this event')) e.target.submit();
-        });
-    </script>
 {% endblock content %}

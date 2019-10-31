@@ -137,3 +137,8 @@ background-color:#39364f;
   }
 
 }
+
+.empty-state a {
+  color: orange;
+}
+
