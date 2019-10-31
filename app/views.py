@@ -2,7 +2,9 @@ import csv
 import datetime
 import operator
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import DateInput
 from django.http import (
@@ -10,9 +12,9 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -29,10 +31,12 @@ from django_filters import (
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
+from dropbox.exceptions import BadInputError
 from pure_pagination.mixins import PaginationMixin
 
 from app import (
     BASIC_CONDITIONS,
+    DROPBOX_ERROR,
     ITEMS_PER_PAGE,
     LINK_TO_RECOUPS,
     LINK_TO_REPORT_EVENTS,
@@ -252,6 +256,26 @@ class ToggleConditionView(View):
         condition_id = self.kwargs.get('condition_id')
         condition = InstallmentCondition.objects.get(pk=condition_id)
         condition.toggle_done()
+        return redirect('conditions', contract_id, installment_id)
+
+
+class ConditionBackupProofView(View):
+
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+
+        condition_id = self.kwargs.get('condition_id')
+        try:
+            condition = InstallmentCondition.objects.get(pk=condition_id)
+            condition.upload_file = self.request.FILES.get('backup_file')
+            condition.full_clean()
+            condition.save()
+        except ValidationError as e:
+            for msg in e.messages:
+                messages.add_message(request, messages.ERROR, msg)
+        except BadInputError:
+            messages.add_message(request, messages.ERROR, DROPBOX_ERROR)
         return redirect('conditions', contract_id, installment_id)
 
 

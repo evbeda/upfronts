@@ -1,13 +1,18 @@
 import csv
 import datetime
 import io
+import mock
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import (
+    MagicMock,
+    patch,
+)
 
 from django.contrib.auth.models import (
     User,
 )
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.test import (
     Client,
     RequestFactory,
@@ -19,6 +24,7 @@ from simple_salesforce import Salesforce
 
 from app.factories import (
     ContractFactory,
+    InstallmentConditionFactory,
     InstallmentFactory,
 )
 from app import (
@@ -31,6 +37,7 @@ from app import (
 )
 from app.views import (
     AllInstallmentsView,
+    ConditionBackupProofView,
     ConditionView,
     ContractAdd,
     ContractsFilter,
@@ -812,6 +819,51 @@ class AllInstallmentsViewTest(TestCase):
         expected_number_of_elements_in_a_full_first_page = ITEMS_PER_PAGE
         self.assertEqual(expected_number_of_elements_in_a_full_first_page, len(response.context_data['object_list']))
         self.assertTrue(response.context_data['is_paginated'])
+
+
+class UploadBackUpFilesTest(TestCase):
+
+    def setUp(self):
+        self.file_mock = MagicMock(spec=File)
+        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        self.file_mock.name = 'test.pdf'
+
+    @mock.patch('django.core.files.storage.default_storage._wrapped')
+    def test_save_file(self, storage_mock):
+        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        self.file_mock.name = 'test.pdf'
+        condition_file = InstallmentConditionFactory.create()
+        condition_file.upload_file = self.file_mock
+
+        condition_file.save()
+
+        self.assertIsNotNone(condition_file.upload_file)
+
+    @mock.patch('django.core.files.storage.default_storage._wrapped')
+    def test_render_view_with_file(self, storage_mock):
+        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        self.file_mock.name = 'test.pdf'
+        condition_file = InstallmentConditionFactory.create()
+        condition_file.upload_file = self.file_mock
+
+        condition_file.save()
+        factory = RequestFactory()
+        kwargs = {
+            'contract_id': condition_file.installment.contract_id,
+            'installment_id': condition_file.installment.id,
+            'condition_id': condition_file.id,
+        }
+        request = factory.post(
+            reverse('condition_backup_proof', kwargs=kwargs)
+        )
+        response = ConditionBackupProofView.as_view()(request, **kwargs)
+        kwargs_response = {
+            'contract_id': condition_file.installment.contract_id,
+            'installment_id': condition_file.installment.id,
+        }
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('conditions', kwargs=kwargs_response))
 
 
 class PrestoQueriesTest(TestCase):
