@@ -31,16 +31,28 @@
                 <p class="lead indent"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></p>
             {% endif %}
             <p class="lead indent"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></p>
-            <p class="lead indent">
-                <b>Events:</b>
-            </p>
-            {% for event in events %}
-            <p class="lead indent">
-                <ul style="list-style-type:none">
-                    <li class="lead indent-events"><a href="{{event.link_to_event}}" target="_blank">{{event.event_name}}</a></li>
-                </ul>
-            </p>
-            {% endfor %}
+            {% if events %}
+                <p class="lead indent">
+                    <b>Events:</b>
+                </p>
+                    <div class="margin-event-table">
+                    {% for event in events %}
+                        <table class="table table-borderless">
+                            <td class="lead table-td-event"><a href="{{event.link_to_event}}" target="_blank">{{event.event_name}}</a></td>
+                            <td class="table-td-trash">
+                                <form class="delete-file-form" action="{% url 'events-delete' contract.id event.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button class="btn btn-link" type="submit">
+                                        <i class="far fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </table>
+                    {% endfor %}
+                    </div>
+            {% else %}
+                <p class="lead indent"><i>There're no events for this contract yet.</i></p>
+            {% endif%}
             <div class="lead indent-form">
                 <form action="{% url 'events-create' contract.id %}" method="POST">{% csrf_token %}
                     <div class="form-group row">
@@ -57,4 +69,10 @@
         </div>
         <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
     </div>
+    <script>
+        $('.delete-file-form').submit(e => {
+            e.preventDefault();
+            if (confirm('Confirm delete for this event')) e.target.submit();
+        });
+    </script>
 {% endblock content %}

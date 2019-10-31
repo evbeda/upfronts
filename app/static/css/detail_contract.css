@@ -20,3 +20,17 @@
     margin-top: 4px;
     margin-left: 15px;
 }
+table td {
+    overflow: hidden;
+    display: inline-block;
+    word-wrap:break-word;
+}
+.table-td-event {
+    width: 500px;
+}
+.table-td-trash {
+    width: 100px;
+}
+.margin-event-table {
+    margin-left: 150px;
+}

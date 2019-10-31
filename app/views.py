@@ -487,3 +487,11 @@ class CreateEvent(View):
             contract=contract,
         )
         return redirect('contracts-detail', contract.id)
+
+
+class DeleteEvent(View):
+
+    def post(self, request, *args, **kwargs):
+        event = Event.objects.get(id = self.kwargs['event_id'])
+        event.delete()
+        return redirect('contracts-detail', self.kwargs['contract_id'])
