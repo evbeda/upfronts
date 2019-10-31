@@ -119,10 +119,9 @@ class FetchSalesForceCasesTable(tables.Table):
     class Meta:
         template_name = "django_tables2/bootstrap.html"
 
-    def render_case_id(self, value):
-        link_to_salesforce_case = self.data.data[0]['link_to_salesforce_case']
+    def render_case_id(self, value, record):
         return format_html(
-            '''<a href="{}">{}</a>'''.format(link_to_salesforce_case, value)
+            '''<a href="{}">{}</a>'''.format(record['link_to_salesforce_case'], value)
         )
 
     def render_save(self, value):
