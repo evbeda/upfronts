@@ -35,11 +35,17 @@
                 </div>
         </div>
 
+        {% if table.data %}
         <div class="row justify-content-center m-5">
             <div class="">
                 {% render_table table %}
             </div>
         </div>
+        {% else %}
+        <div class="alert alert-info">
+          <p>There are no installments for this contract. Add a new one by filling out the form below.</p>
+        </div>
+        {% endif %}
 
         <div class="row justify-content-center m-5">
             <div class="col-6">

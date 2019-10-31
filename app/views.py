@@ -360,7 +360,7 @@ class InstallmentsFilter(FilterSet):
 
 class AllInstallmentsView(LoginRequiredMixin, FilterView, PaginationMixin, ListView):
     model = Installment
-    template_name = "app/all-installments.html"
+    template_name = "app/all_installments.html"
     filterset_class = InstallmentsFilter
     paginate_by = ITEMS_PER_PAGE
 
