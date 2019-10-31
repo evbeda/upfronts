@@ -30,10 +30,12 @@ from django_filters import (
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
+from dropbox.exceptions import BadInputError
 from pure_pagination.mixins import PaginationMixin
 
 from app import (
     BASIC_CONDITIONS,
+    DROPBOX_ERROR,
     ITEMS_PER_PAGE,
     LINK_TO_RECOUPS,
     LINK_TO_REPORT_EVENTS,
@@ -287,14 +289,16 @@ class ConditionBackupProofView(View):
         installment_id = self.kwargs.get('installment_id')
 
         condition_id = self.kwargs.get('condition_id')
-        condition = InstallmentCondition.objects.get(pk=condition_id)
         try:
+            condition = InstallmentCondition.objects.get(pk=condition_id)
             condition.upload_file = self.request.FILES.get('backup_file')
             condition.full_clean()
             condition.save()
         except ValidationError as e:
             for msg in e.messages:
                 messages.add_message(request, messages.ERROR, msg)
+        except BadInputError:
+            messages.add_message(request, messages.ERROR, DROPBOX_ERROR)
         return redirect('conditions', contract_id, installment_id)
 
 
