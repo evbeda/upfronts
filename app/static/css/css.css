@@ -142,3 +142,6 @@ background-color:#39364f;
   color: orange;
 }
 
+.table-wrapper {
+  overflow-x: scroll;
+}
