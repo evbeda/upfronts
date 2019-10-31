@@ -36,6 +36,12 @@ urlpatterns = [
     ),
     url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
+        '/conditions/(?P<condition_id>[0-9]+)/delete-file/$',
+        views.DeleteUploadedFileCondition.as_view(),
+        name='delete-uploaded-file',
+    ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
         '/conditions/(?P<condition_id>[0-9]+)/backup_proof/$',
         views.ConditionBackupProofView.as_view(),
         name='condition_backup_proof',

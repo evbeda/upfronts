@@ -7,16 +7,12 @@
 {% block head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/create_condition.css' %}">
+    <script src="{% static 'js/create_condition.js' %}"></script>
 {% endblock %}
 
 {% block title %} Create condition {% endblock title %}
 
 {% block content %}
-<html>
-    <head>
-      <link rel="stylesheet" type="text/css" href="{% static 'css\create_condition.css' %}">
-    </head>
-    <body>
         <div class='m-5 p-3'>
             {% if messages %}
             <div class="alert alert-danger">
@@ -95,7 +91,12 @@
                     {{object.upload_file}}
                   </td>
                   <td>
-                    <a href=""><i class="far fa-trash-alt"></i></a>
+                    <form class="delete-file-form" action="{% url 'delete-uploaded-file' installment.contract_id installment.id object.id %}" method="POST">
+                      {% csrf_token %}
+                      <button class="btn btn-link" type="submit">
+                        <i class="far fa-trash-alt"></i>
+                      </button>
+                    </form>
                   </td>
                   {% else %}
                   <td>
