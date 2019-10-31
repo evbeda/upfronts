@@ -2,16 +2,17 @@ import csv
 import datetime
 import io
 import mock
-
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import (
+    MagicMock,
+    patch,
+)
 
 from django.contrib.auth.models import (
     User,
 )
 from django.core.exceptions import ValidationError
 from django.core.files import File
-from django.core.files.storage import Storage
 from django.test import (
     Client,
     RequestFactory,
@@ -23,18 +24,20 @@ from simple_salesforce import Salesforce
 
 from app.factories import (
     ContractFactory,
-    ConditionFactory,
+    InstallmentConditionFactory,
     InstallmentFactory,
     )
 from app import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
     INVALID_RECOUP_AMOUNT,
+    ITEMS_PER_PAGE,
     STATUS,
     SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.views import (
     AllInstallmentsView,
+    ConditionBackupProofView,
     ConditionView,
     ContractAdd,
     ContractsFilter,
@@ -245,29 +248,6 @@ class InstallmentConditionTest(TestCase):
         installment_condition.refresh_from_db()
         self.assertNotEqual(installment_condition.done, None)
 
-    def test_delete_file_uploaded(self):
-        file_mock = mock.MagicMock(spec=File, name='FileMock')
-        file_mock.name = 'test1.jpg'
-        condition = ConditionFactory.create()
-        condition.upload_file = file_mock
-        storage_mock = mock.MagicMock(spec=Storage, name='StorageMock')
-        storage_mock.url = mock.MagicMock(name='url')
-        storage_mock.url.return_value = '/tmp/test1.jpg'
-        with mock.patch('django.core.files.storage.default_storage._wrapped', storage_mock):
-            condition.save()
-        factory = RequestFactory()
-        kwargs = {
-            'contract_id': condition.installment.contract_id,
-            'installment_id': condition.installment.id,
-            'condition_id': condition.id,
-        }
-        request = factory.post(
-            reverse('delete-uploaded-file', kwargs=kwargs)
-        )
-        with mock.patch.object(InstallmentCondition, 'delete_upload_file'):
-            response = DeleteUploadedFileCondition.as_view()(request, **kwargs)
-        self.assertEqual(response.status_code, 302)
-
 
 class RedirectTest(TestCase):
 
@@ -361,35 +341,24 @@ class TestDownloadCsv(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.expected_upfront_dict = {
-            'is_recoup': 'True',
+        self.contract_data = {
+            'organizer_account_name': 'EDA',
+            'organizer_email': 'juan@eventbrite.com',
+            'signed_date': '2019-04-04',
+        }
+        self.contract = Contract.objects.create(**self.contract_data)
+        self.installment_data = {
+            'contract_id': self.contract.id,
+            'is_recoup': True,
             'status': 'COMMITED/APPROVED',
-            'account_name': 'EDA',
-            'email_organizer': 'juan@eventbrite.com',
-            'upfront_projection': '77777.0000',
-            'contract_signed_date': '2019-04-04',
+            'upfront_projection': 77777,
             'maximum_payment_date': '2019-05-30',
             'payment_date': '2019-05-05',
-            'recoup_amount': '55555.0000',
-            'gtf': '7000.0000',
-            'gts': '100000.0000',
+            'recoup_amount': 55555,
+            'gtf': 100000,
+            'gts': 7000,
         }
-        self.contract = Contract.objects.create(
-            organizer_account_name='EDA',
-            organizer_email='juan@eventbrite.com',
-            signed_date='2019-04-04',
-        )
-        Installment.objects.create(
-            contract=self.contract,
-            is_recoup=True,
-            status='COMMITED/APPROVED',
-            upfront_projection=77777,
-            maximum_payment_date='2019-05-30',
-            payment_date='2019-05-05',
-            recoup_amount=55555,
-            gtf=100000,
-            gts=7000,
-        )
+        self.installment = Installment.objects.create(**self.installment_data)
 
     def test_status_code_200(self):
         request = self.factory.get(reverse('all-installments'))
@@ -400,31 +369,40 @@ class TestDownloadCsv(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_download_csv(self):
-        request = self.factory.get(reverse('all-installments'))
-        request.path = request.path + '?download=true'
-        request.user = User.objects.create_user(
+        user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
-        response = AllInstallmentsView.as_view()(request)
-        self.assertEqual('text/csv', dict(response.items())['Content-Type'])
-        self.assertIn('-upfronts.csv', dict(response.items())['Content-Disposition'])
+        self.client.force_login(user)
+        kwargs = {
+            'download': 'true',
+        }
+
+        response = self.client.get(reverse('all-installments'), kwargs)
+
+        self.assertEqual('text/csv', response.get('Content-Type'))
+        self.assertIn('-installments.csv', response.get('Content-Disposition'))
 
     def test_download_csv_without_filter(self):
-        request = self.factory.get(reverse('all-installments')+'?download=true')
-        request.user = User.objects.create_user(
+        user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
-        response = AllInstallmentsView.as_view()(request)
-        response_decode = response.content.decode('utf-8')
-        csv_list = csv.reader(io.StringIO(response_decode))
-        for row in csv_list:
-            csv_set = set(row)
-        expected_csv_set = set(list(self.expected_upfront_dict.values()))
-        self.assertEqual(csv_set, expected_csv_set)
+        kwargs = {
+            'download': 'true',
+        }
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('all-installments'), kwargs)
+        decoded_response = response.content.decode('utf-8')
+        reader = csv.reader(io.StringIO(decoded_response))
+        next(reader)
+        csv_rows = [row for row in reader]
+        self.assertEqual(len(Installment.objects.all()), len(csv_rows))
 
     def test_download_csv_with_filter(self):
+        FILTERED_STATUS = 'COMMITED/APPROVED'
+        NON_FILTERED_STATUS = 'PENDING'
         Installment.objects.create(
             contract=self.contract,
             is_recoup=True,
-            status='PENDING',
+            status=NON_FILTERED_STATUS,
             upfront_projection=77777,
             maximum_payment_date='2019-05-30',
             payment_date='2019-05-05',
@@ -432,20 +410,24 @@ class TestDownloadCsv(TestCase):
             gtf=100000,
             gts=7000,
         )
-        request = self.factory.get(
-            reverse('all-installments') +
-            '?search_organizer=&djfdate_time_signed_date=&djfdate_time_max_payment_date='
-            '&djfdate_ttime_payment_date=&status=COMMITED%2FAPPROVED&download=true'
-        )
-        request.user = User.objects.create_user(
+        user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
-        response = AllInstallmentsView.as_view()(request)
-        response_decode = response.content.decode('utf-8')
-        csv_list = csv.reader(io.StringIO(response_decode))
-        for row in csv_list:
-            csv_set = set(row)
-        expected_csv_set = set(list(self.expected_upfront_dict.values()))
-        self.assertEqual(csv_set, expected_csv_set)
+        kwargs = {
+            'search_organizer': '',
+            'djfdate_time_signed_date': '',
+            'djfdate_time_max_payment_date': '',
+            'djfdate_ttime_payment_date': '',
+            'status': FILTERED_STATUS,
+            'download': 'true',
+        }
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('all-installments'), kwargs)
+
+        decoded_response = response.content.decode('utf-8')
+        reader = csv.DictReader(io.StringIO(decoded_response))
+        for row in reader:
+            self.assertEqual(row['status'], FILTERED_STATUS)
 
 
 class FetchCaseTests(TestCase):
@@ -811,18 +793,101 @@ class AllInstallmentsViewTest(TestCase):
         self.assertIn(self.installment3, result_search_payment_date)
         self.assertNotIn(self.installment3, result_search_status)
 
+    def test_all_installments_pagination_incomplete_page(self):
 
-# class UploadBackUpFilesTest(TestCase):
-#
-#     def setUp(self):
-#         c = Client()
-#         self.file_mock = MagicMock(spec=File)
-#
-#     def test_file_field(self):
-#         file_mock = mock.MagicMock(spec=File)
-#         file_mock.name = 'test.pdf'
-#         condition_file = InstallmentCondition(upload_file=file_mock)
-#         self.assertEqual(condition_file.upload_file.name, file_mock.name)
+        factory = RequestFactory()
+
+        request = factory.get(reverse('all-installments'))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        expected_number_of_elements_in_first_page = 3
+        self.assertEqual(expected_number_of_elements_in_first_page, len(response.context_data['object_list']))
+        self.assertFalse(response.context_data['is_paginated'])
+
+    def test_all_installments_pagination_complete_page(self):
+
+        factory = RequestFactory()
+
+        contract = ContractFactory()
+        items_per_page_exceed = ITEMS_PER_PAGE + 1
+        InstallmentFactory.create_batch(items_per_page_exceed, contract=contract)
+
+        request = factory.get(reverse('all-installments'))
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = AllInstallmentsView.as_view()(request)
+        expected_number_of_elements_in_a_full_first_page = ITEMS_PER_PAGE
+        self.assertEqual(expected_number_of_elements_in_a_full_first_page, len(response.context_data['object_list']))
+        self.assertTrue(response.context_data['is_paginated'])
+
+
+class UploadBackUpFilesTest(TestCase):
+
+    def setUp(self):
+        self.file_mock = MagicMock(spec=File)
+        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        self.file_mock.name = 'test.pdf'
+
+    @mock.patch('django.core.files.storage.default_storage._wrapped')
+    def test_save_file(self, storage_mock):
+        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        self.file_mock.name = 'test.pdf'
+        condition_file = InstallmentConditionFactory.create()
+        condition_file.upload_file = self.file_mock
+
+        condition_file.save()
+
+        self.assertIsNotNone(condition_file.upload_file)
+
+    @mock.patch('django.core.files.storage.default_storage._wrapped')
+    def test_render_view_with_file(self, storage_mock):
+        self.file_mock = mock.MagicMock(spec=File, name='FileMock')
+        self.file_mock.name = 'test.pdf'
+        condition_file = InstallmentConditionFactory.create()
+        condition_file.upload_file = self.file_mock
+
+        condition_file.save()
+        factory = RequestFactory()
+        kwargs = {
+            'contract_id': condition_file.installment.contract_id,
+            'installment_id': condition_file.installment.id,
+            'condition_id': condition_file.id,
+        }
+        request = factory.post(
+            reverse('condition_backup_proof', kwargs=kwargs)
+        )
+        response = ConditionBackupProofView.as_view()(request, **kwargs)
+        kwargs_response = {
+            'contract_id': condition_file.installment.contract_id,
+            'installment_id': condition_file.installment.id,
+        }
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('conditions', kwargs=kwargs_response))
+
+    @mock.patch('django.core.files.storage.default_storage._wrapped')
+    def test_delete_file_uploaded(self, storage_mock):
+        file_mock = mock.MagicMock(spec=File, name='FileMock')
+        file_mock.name = 'test1.jpg'
+        condition = InstallmentConditionFactory.create()
+        condition.upload_file = file_mock
+        condition.save()
+        factory = RequestFactory()
+        kwargs = {
+            'contract_id': condition.installment.contract_id,
+            'installment_id': condition.installment.id,
+            'condition_id': condition.id,
+        }
+        request = factory.post(
+            reverse('delete-uploaded-file', kwargs=kwargs)
+        )
+        with mock.patch.object(InstallmentCondition, 'delete_upload_file'):
+            response = DeleteUploadedFileCondition.as_view()(request, **kwargs)
+
+        self.assertEqual(response.status_code, 302)
+
+
 class PrestoQueriesTest(TestCase):
     def test_generate_presto_query(self):
         event_id = '1234'

@@ -2,7 +2,6 @@ from factory import (
     DjangoModelFactory,
     SubFactory,
 )
-
 from django.utils import timezone
 
 from . import models
@@ -37,7 +36,7 @@ class InstallmentFactory(DjangoModelFactory):
     gts = 346897
 
 
-class ConditionFactory(DjangoModelFactory):
+class InstallmentConditionFactory(DjangoModelFactory):
     class Meta:
         model = models.InstallmentCondition
 

@@ -1,5 +1,6 @@
 import csv
 import datetime
+import operator
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -30,14 +31,18 @@ from django_filters import (
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
+from dropbox.exceptions import BadInputError
+from pure_pagination.mixins import PaginationMixin
 
 from app import (
     BASIC_CONDITIONS,
-    SUPERSET_DEFAULT_CURRENCY,
+    DROPBOX_ERROR,
+    ITEMS_PER_PAGE,
     LINK_TO_RECOUPS,
     LINK_TO_REPORT_EVENTS,
     LINK_TO_SEARCH_EVENT_OR_USER,
     STATUS,
+    SUPERSET_DEFAULT_CURRENCY,
     SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.models import (
@@ -103,11 +108,12 @@ class ContractUpdate(UpdateView):
         return context
 
 
-class ContractsTableView(LoginRequiredMixin, SingleTableMixin, FilterView):
+class ContractsTableView(LoginRequiredMixin, SingleTableMixin, PaginationMixin, FilterView):
     queryset = Contract.objects.all()
     table_class = ContractsTable
     template_name = "app/contracts_table.html"
     filterset_class = ContractsFilter
+    paginate_by = ITEMS_PER_PAGE
 
 
 class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
@@ -161,30 +167,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
                 condition_name=condition,
             )
         return super(InstallmentView, self).form_valid(form)
-
-
-def download_csv(request):
-    response = HttpResponse(content_type='text/csv')
-    filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
-    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-    installments = Installment.objects.all()
-    writer = csv.writer(response)
-    for installment in installments:
-        writer.writerow([
-            installment.is_recoup,
-            installment.status,
-            installment.contract.organizer_account_name,
-            installment.contract.organizer_email,
-            installment.contract.signed_date,
-            installment.upfront_projection,
-            installment.recoup_amount,
-            installment.balance,
-            installment.maximum_payment_date,
-            installment.payment_date,
-            installment.gts,
-            installment.gtf,
-        ])
-    return response
 
 
 class ContractAdd(TemplateView):
@@ -284,14 +266,16 @@ class ConditionBackupProofView(View):
         installment_id = self.kwargs.get('installment_id')
 
         condition_id = self.kwargs.get('condition_id')
-        condition = InstallmentCondition.objects.get(pk=condition_id)
         try:
+            condition = InstallmentCondition.objects.get(pk=condition_id)
             condition.upload_file = self.request.FILES.get('backup_file')
             condition.full_clean()
             condition.save()
         except ValidationError as e:
             for msg in e.messages:
                 messages.add_message(request, messages.ERROR, msg)
+        except BadInputError:
+            messages.add_message(request, messages.ERROR, DROPBOX_ERROR)
         return redirect('conditions', contract_id, installment_id)
 
 
@@ -374,39 +358,43 @@ class InstallmentsFilter(FilterSet):
         fields = ('search_organizer',)
 
 
-class AllInstallmentsView(LoginRequiredMixin, FilterView, ListView):
+class AllInstallmentsView(LoginRequiredMixin, FilterView, PaginationMixin, ListView):
     model = Installment
-    template_name = "app/all-installments.html"
+    template_name = "app/all_installments.html"
     filterset_class = InstallmentsFilter
+    paginate_by = ITEMS_PER_PAGE
 
     def get(self, request, *args, **kwargs):
         filtered_response = super().get(request, *args, **kwargs)
-        if 'download' in filtered_response.context_data['url']:
+        if self.request.GET.get('download'):
             response = HttpResponse(content_type='text/csv')
-            filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
+            filename = "{}-installments.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
             response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
             installments = filtered_response.context_data['installment_list']
             writer = csv.writer(response)
+            fields = [
+                'is_recoup',
+                'status',
+                'contract.organizer_account_name',
+                'recoup_amount',
+                'upfront_projection',
+                'balance',
+                'contract.organizer_email',
+                'contract.signed_date',
+                'upfront_projection',
+                'maximum_payment_date',
+                'payment_date',
+                'gts',
+                'gtf',
+            ]
+            writer.writerow(fields)
             for installment in installments:
-                writer.writerow([
-                    installment.is_recoup,
-                    installment.status,
-                    installment.contract.organizer_account_name,
-                    installment.contract.organizer_email,
-                    installment.contract.signed_date,
-                    installment.upfront_projection,
-                    installment.recoup_amount,
-                    installment.maximum_payment_date,
-                    installment.payment_date,
-                    installment.gts,
-                    installment.gtf,
-                ])
+                writer.writerow([operator.attrgetter(field)(installment) for field in fields])
             return response
         return filtered_response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['url'] = self.request.get_full_path()
         return context
 
 

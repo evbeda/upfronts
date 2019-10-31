@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load bootstrap4 %}
+{% load static %}
+{% bootstrap_css %}
+{% block head %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/installment_table.css' %}">
+{% endblock %}
+
+{% block title %} Installments {% endblock title %}
+
+{% block content %}
+    <div class='p-3'>
+        <div class="m-2">
+            <h1>Installments</h1>
+        </div>
+        {% if installment_list %}
+          {% if filter %}
+            <form action="" method="get" class="form form-inline">
+              {% bootstrap_form filter.form layout='inline' %}
+              <button type="submit" class="btn btn-primary datep"><i class="fab fa-sistrix"></i></button>
+            </form>
+          {% endif %}
+          <div class="mt-4">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col-sm">Organizer account</th>
+                  <th scope="col-sm">Organizer email</th>
+                  <th scope="col-sm">Signed date</th>
+                  <th scope="col-sm">Is recoup</th>
+                  <th scope="col-sm">Status</th>
+                  <th scope="col-sm">Upfront projection</th>
+                  <th scope="col-sm">Recoup amount</th>
+                  <th scope="col-sm">Balance</th>
+                  <th scope="col-sm">Payment date</th>
+                  <th scope="col-sm">Maximum payment date</th>
+                  <th scope="col-sm">Gtf</th>
+                  <th scope="col-sm">Gts</th>
+                  <th scope="col-sm">Edit</th>
+                  <th scope="col-sm">Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for installment in installment_list %}
+                <tr>
+                  <td>{{installment.contract.organizer_account_name}}</td>
+                  <td>{{installment.contract.organizer_email}}</td>
+                  <td>{{installment.contract.signed_date}}</td>
+                  <td>{{installment.is_recoup}}</td>
+                  <td>{{installment.status}}</td>
+                  <td>{{installment.upfront_projection}}</td>
+                  <td>{{installment.recoup_amount}}</td>
+                  <td>{{installment.balance}}</td>
+                  <td>{{installment.payment_date}}</td>
+                  <td>{{installment.maximum_payment_date}}</td>
+                  <td>{{installment.gtf}}</td>
+                  <td>{{installment.gts}}</td>
+                  <td><a><i class="far fa-edit"></i></a></td>
+                  <td><a><i class="fas fa-trash-alt"></i></a></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% include "_pagination.html" %}
+          <div class="float-right ml-2" >
+            <div class="dropdown">
+                <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown">
+                    Export to
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a id="export-csv" class="dropdown-item" href=""><i class="fas fa-file-csv"></i> CSV</a>
+                  <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
+                </div>
+            </div>
+          </div>
+        {% else %}
+          <div class="jumbotron jumbotron-fluid empty-state">
+            <div class="container">
+              <h1 class="display-4">Oops!</h1>
+          <p class="lead">There are no installments yet. See saved contracts <a href="{% url 'contracts' %}">here</a>.</p>
+            </div>
+          </div>
+        {% endif %}
+    <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary float-left"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
+    </div>
+  <script src="{% static 'js/all-installments.js' %}"></script>
+{% endblock content %}

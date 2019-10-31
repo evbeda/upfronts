@@ -23,3 +23,7 @@ BASIC_CONDITIONS = ('Promissory Note', 'Bank Details', 'Payment Date', 'Funds Av
 
 SUPERSET_QUERY_DATE_FORMAT = "%Y-%m-%d"
 SUPERSET_DEFAULT_CURRENCY = 'BRL'
+
+ITEMS_PER_PAGE = 15
+
+DROPBOX_ERROR = "There was an error trying to connect with the file storage."

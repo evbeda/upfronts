@@ -92,7 +92,7 @@
                 <td>
                     <form class="delete-file-form" action="{% url 'delete-uploaded-file' installment.contract_id installment.id object.id %}" method="POST">
                       {% csrf_token %}
-                      <button class="btn btn-outline-primary" type="submit">
+                      <button class="btn btn-link" type="submit">
                         <i class="far fa-trash-alt"></i>
                       </button>
                     </form>
