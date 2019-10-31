@@ -35,3 +35,12 @@ class InstallmentFactory(DjangoModelFactory):
     recoup_amount = 736372
     gtf = 873456
     gts = 346897
+
+
+class EventFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Event
+
+    contract = SubFactory(ContractFactory)
+    event_id = "534f938"
+    event_name = "Festival"

@@ -20,7 +20,7 @@ from simple_salesforce import Salesforce
 from app.factories import (
     ContractFactory,
     InstallmentFactory,
-)
+    EventFactory)
 from app import (
     INVALID_SIGN_DATE,
     INVALID_PAYMENT_DATE,
@@ -36,6 +36,7 @@ from app.views import (
     ContractsFilter,
     ContractsTableView,
     CreateEvent,
+    DeleteEvent,
     DetailContractView,
     InstallmentDelete,
     InstallmentsFilter,
@@ -912,3 +913,18 @@ class CreateEventTest(TestCase):
         event = contract.events.all().get()
         self.assertEqual(event_data['Event id'], event.event_id)
         self.assertEqual(event_data['Event Name'], event.event_name)
+
+
+class DeleteEventTest(TestCase):
+
+    def test_delete_event(self):
+        factory = RequestFactory()
+        event = EventFactory()
+        kwargs = {
+            'contract_id': event.contract_id,
+            'event_id': event.id,
+        }
+        request = factory.post(reverse('events-delete', args=[event.contract_id, event.id]))
+        DeleteEvent.as_view()(request, **kwargs)
+        event_query = Event.objects.filter(id=event.id)
+        self.assertEqual(event_query.count(), 0)

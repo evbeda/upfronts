@@ -51,7 +51,7 @@
                     {% endfor %}
                     </div>
             {% else %}
-                <p class="lead indent"><i>There're no events for this contract yet.</i></p>
+                <p class="lead indent"><i>There are no events for this contract yet.</i></p>
             {% endif%}
             <div class="lead indent-form">
                 <form action="{% url 'events-create' contract.id %}" method="POST">{% csrf_token %}
