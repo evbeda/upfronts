@@ -42,6 +42,7 @@ from app.views import (
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
+    DeleteUploadedFileCondition,
     InstallmentDelete,
     InstallmentsFilter,
     InstallmentUpdate,
@@ -864,6 +865,26 @@ class UploadBackUpFilesTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('conditions', kwargs=kwargs_response))
+
+    @mock.patch('django.core.files.storage.default_storage._wrapped')
+    def test_delete_file_uploaded(self, storage_mock):
+        file_mock = mock.MagicMock(spec=File, name='FileMock')
+        file_mock.name = 'test1.jpg'
+        condition = InstallmentConditionFactory.create()
+        condition.upload_file = file_mock
+        condition.save()
+        factory = RequestFactory()
+        kwargs = {
+            'contract_id': condition.installment.contract_id,
+            'installment_id': condition.installment.id,
+            'condition_id': condition.id,
+        }
+        request = factory.post(
+            reverse('delete-uploaded-file', kwargs=kwargs)
+        )
+        with mock.patch.object(InstallmentCondition, 'delete_upload_file'):
+            response = DeleteUploadedFileCondition.as_view()(request, **kwargs)
+        self.assertEqual(response.status_code, 302)
 
 
 class PrestoQueriesTest(TestCase):

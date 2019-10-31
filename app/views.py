@@ -459,3 +459,13 @@ class InstallmentDelete(DeleteView):
         contract_id = kwargs['contract_id']
         self.get_queryset().filter(id=kwargs['pk']).delete()
         return redirect("installments-create", contract_id)
+
+
+class DeleteUploadedFileCondition(View):
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+        condition_id = self.kwargs.get('condition_id')
+        condition = InstallmentCondition.objects.get(pk=condition_id)
+        condition.delete_upload_file()
+        return redirect('conditions', contract_id, installment_id)
