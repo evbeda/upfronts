@@ -12,7 +12,6 @@ class Contract(models.Model):
     organizer_account_name = models.CharField(max_length=80)
     organizer_email = models.EmailField()
     signed_date = models.DateField()
-    event_id = models.CharField(max_length=80, null=True, blank=True)
     user_id = models.CharField(max_length=80, null=True, blank=True)
     description = models.TextField()
     case_number = models.CharField(max_length=80, unique=True)
@@ -21,7 +20,7 @@ class Contract(models.Model):
     link_to_salesforce_case = models.CharField(max_length=40)
 
     @property
-    def edit(self):
+    def details(self):
         return self
 
     @property
@@ -72,3 +71,9 @@ class InstallmentCondition(models.Model):
     def toggle_done(self):
         self.done = None if self.done else datetime.datetime.now()
         self.save()
+
+
+class Event(models.Model):
+    event_id = models.CharField(max_length=40)
+    event_name = models.CharField(max_length=40)
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='events')

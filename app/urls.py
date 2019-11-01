@@ -7,6 +7,7 @@ from app import views
 urlpatterns = [
     url(r'^contracts/search/', views.ContractAdd.as_view(), name='contracts-add'),
     url(r'^contracts/update/(?P<pk>[0-9]+)/$', views.ContractUpdate.as_view(), name='contracts-update'),
+    url(r'^contracts/detail/(?P<pk>[0-9]+)/$', views.DetailContractView.as_view(), name='contracts-detail'),
     url(r'^contracts/save/(?P<contract_id>\w+)/$', views.SaveCaseView.as_view(), name='contracts-save'),
     url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/$',
@@ -33,6 +34,16 @@ urlpatterns = [
         '/conditions/(?P<condition_id>[0-9]+)/toggle/$',
         views.ToggleConditionView.as_view(),
         name='toggle-condition',
+    ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/events/$',
+        views.CreateEvent.as_view(),
+        name='events-create',
+    ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/events/(?P<event_id>[0-9]+)/$',
+        views.DeleteEvent.as_view(),
+        name='events-delete',
     ),
     url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'

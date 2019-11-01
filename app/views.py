@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     CreateView,
     DeleteView,
+    DetailView,
     ListView,
     UpdateView,
     TemplateView,
@@ -47,6 +48,7 @@ from app import (
 )
 from app.models import (
     Contract,
+    Event,
     Installment,
     InstallmentCondition,
 )
@@ -98,7 +100,7 @@ class ContractsFilter(FilterSet):
 class ContractUpdate(UpdateView):
     template_name = "app/update_contract.html"
     model = Contract
-    fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
+    fields = ["organizer_account_name", "organizer_email", "signed_date", "user_id"]
     success_url = reverse_lazy('contracts')
 
     def get_context_data(self, **kwargs):
@@ -140,7 +142,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
         context['contract'] = contract
         context['link_to_recoup'] = LINK_TO_RECOUPS
-        context['link_to_event'] = LINK_TO_REPORT_EVENTS.format(contract.event_id)
         context['form'].fields['maximum_payment_date'].widget = DateInput(
             attrs={
                 'id': 'datepicker_maximum_payment_date',
@@ -459,6 +460,45 @@ class InstallmentDelete(DeleteView):
         contract_id = kwargs['contract_id']
         self.get_queryset().filter(id=kwargs['pk']).delete()
         return redirect("installments-create", contract_id)
+
+
+class DetailContractView(DetailView):
+    model = Contract
+    template_name = "app/detail_contract.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        contract = context['contract']
+        events = []
+        context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
+            email_organizer=contract.organizer_email)
+        context['link_to_recoup'] = LINK_TO_RECOUPS
+        query_events = contract.events.all()
+        for event in query_events:
+            event.link_to_event = LINK_TO_REPORT_EVENTS.format(event.event_id)
+            events.append(event)
+        context['events'] = events
+        return context
+
+
+class CreateEvent(View):
+
+    def post(self, request, *args, **kwargs):
+        contract = Contract.objects.get(pk=self.kwargs['contract_id'])
+        Event.objects.create(
+            event_name=request.POST['Event Name'],
+            event_id=request.POST['Event id'],
+            contract=contract,
+        )
+        return redirect('contracts-detail', contract.id)
+
+
+class DeleteEvent(View):
+
+    def post(self, request, *args, **kwargs):
+        event = Event.objects.get(id=self.kwargs['event_id'])
+        event.delete()
+        return redirect('contracts-detail', self.kwargs['contract_id'])
 
 
 class DeleteUploadedFileCondition(View):
