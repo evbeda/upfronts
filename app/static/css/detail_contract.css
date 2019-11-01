@@ -1,0 +1,36 @@
+.inline {
+    display:inline;
+}
+.indent {
+    text-indent: 100px;
+}
+.indent-events {
+    text-indent: 150px;
+}
+.indent-form {
+    margin-left: 100px;
+}
+.margin-button-edit {
+    margin-top: 10px;
+}
+.margin-link {
+    margin-top: 15px;
+}
+.margin-delete {
+    margin-top: 4px;
+    margin-left: 15px;
+}
+.table-td-event-list {
+    overflow: hidden;
+    display: inline-block;
+    word-wrap:break-word;
+}
+.table-td-event-name {
+    width: 500px;
+}
+.table-td-trash {
+    width: 100px;
+}
+.margin-event-table {
+    margin-left: 150px;
+}

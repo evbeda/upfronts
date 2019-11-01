@@ -42,3 +42,12 @@ class InstallmentConditionFactory(DjangoModelFactory):
 
     installment = SubFactory(InstallmentFactory)
     condition_name = "Promissory note"
+
+
+class EventFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Event
+
+    contract = SubFactory(ContractFactory)
+    event_id = "534f938"
+    event_name = "Festival"

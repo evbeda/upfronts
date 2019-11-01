@@ -21,20 +21,26 @@
                     <a href="{{info_event_url}}"><b>Search for user or event id</b></a>
                 </div>
             </div>
+        </div>
+        <div class="m-5">
+            <form method="post">{% csrf_token %}
+                <div class="container">
+
+                    {% bootstrap_form form layout='horizontal' %}
+                    <div class="form-group row">
+                        <div class="col-sm-1">
+                            <a href="{% url 'contracts-detail' contract.id %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
+                        </div>
+                        <div class="col-sm-9 offset-sm-2">
+                            <div class="float-right">
+                                <input type='submit' class="btn btn-outline-primary" value='Save' />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
 
         </div>
     </div>
-    <form method="post">{% csrf_token %}
-        <div class="container">
 
-            {% bootstrap_form form layout='horizontal' %}
-            <div class="form-group row">
-                <div class="col-sm-10 offset-sm-2">
-                    <div class="float-right">
-                        <input type='submit' class="btn btn-outline-primary" value='Save' />
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
 {% endblock content %}
