@@ -36,6 +36,7 @@ urlpatterns = [
     ),
     url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
+    url(r'attachment/(?P<attachment_id>.+)/$', views.download_attachment, name='download_attachment'),
     url(r'^ajax/superset-query', views.presto_query, name='superset_query'),
     url(r'^', RedirectView.as_view(url='/contracts/'), name='redirect-url'),
 ]

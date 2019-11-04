@@ -1,3 +1,4 @@
+from io import BytesIO
 import csv
 import datetime
 
@@ -52,12 +53,8 @@ from app.tables import (
     InstallmentsTable,
 )
 from app.utils import (
-    fetch_cases,
-    fetch_cases_by_date,
     generate_presto_query,
-    get_case_by_id,
-    get_contract_attachments,
-    get_contract_by_id,
+    SalesforceQuery,
 )
 
 
@@ -136,8 +133,8 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context = super().get_context_data(**kwargs)
         contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
         attachments = Attachment.objects.filter(contract_id=self.kwargs['contract_id'])
-        context['contract'] = contract
         context['attachments'] = attachments
+        context['contract'] = contract
         context['link_to_recoup'] = LINK_TO_RECOUPS
         context['link_to_event'] = LINK_TO_REPORT_EVENTS.format(contract.event_id)
         context['form'].fields['maximum_payment_date'].widget = DateInput(
@@ -152,7 +149,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
                 'type': 'text',
             },
         )
-        import ipdb; ipdb.set_trace()
         return context
 
     def get_success_url(self):
@@ -190,6 +186,24 @@ def download_csv(request):
             installment.gts,
             installment.gtf,
         ])
+    return response
+
+
+def download_attachment(request, **kwargs):
+    sf = SalesforceQuery()
+    attachment_id = kwargs['attachment_id']
+    attachment = Attachment.objects.filter(id=attachment_id).get()
+    content_type = attachment.content_type
+    extension = content_type.split('/')[-1]
+    name = attachment.name.replace(',', '-')
+    filename = name + '.' + extension
+    content_disposition = "attachment; filename=" + filename
+    salesforce_attachment_id = attachment.salesforce_id
+    attachment_content = sf.fetch_attachment(salesforce_attachment_id)
+    buffer = BytesIO()
+    buffer.write(attachment_content.content)
+    response = HttpResponse(buffer.getvalue(), content_type='{}'.format(content_type))
+    response["Content-Disposition"] = content_disposition.encode('utf-8')
     return response
 
 
@@ -232,7 +246,7 @@ class SaveCaseView(View):
         case_data = get_case_by_id(case_id)
         contract_id = case_data['Contract__c']
         contract_data = get_contract_by_id(contract_id)
-        attachments_data = get_contract_attachments(contract_id)
+        attachments_data = fetch_contract_attachments(contract_id)
         contract = Contract.objects.create(
             organizer_account_name=contract_data['Hoopla_Account_Name__c'],
             organizer_email=contract_data['Eventbrite_Username__c'],
@@ -250,7 +264,6 @@ class SaveCaseView(View):
                 content_type=attachment['content_type'],
                 contract=contract,
             )
-
         return redirect('installments-create', contract.id)
 
 

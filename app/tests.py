@@ -48,9 +48,11 @@ from app.models import (
     InstallmentCondition,
 )
 from app.utils import (
+    fetch_attachment,
     fetch_cases,
     fetch_cases_by_date,
     generate_presto_query,
+    get_contract_attachments,
 )
 
 
@@ -872,3 +874,58 @@ class PrestoQueriesTest(TestCase):
                 datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
             )
         )
+
+
+class DownloadAttachment(TestCase):
+    def test_get_one_contract_attachment(self):
+        FAKE_ATTACHMENT_ID='FAKE_ATTACHMENT_ID_1'
+        FAKE_SF_QUERY_RESPONSES = (
+            {
+                'records': [
+                    {
+                        'Id': 'FAKE_ATTACHMENT_ID_1',
+                        'Name': 'FAKE_NAME_1',
+                        'ContentType': 'FAKE_CONTENT_TYPE_1',
+                    },
+                 ]
+            },
+        )
+        contract_id = ['FAKE_CONTRACT_ID_1']
+        with patch.object(Salesforce, '__init__', return_value=None), \
+                patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
+            result = get_contract_attachments(contract_id)
+        for attachment in result:
+            self.assertEqual(attachment['salesforce_id'], FAKE_ATTACHMENT_ID)
+
+    def test_get_contract_attachments(self):
+        FAKE_ATTACHMENT_ID=['FAKE_ATTACHMENT_ID_1', 'FAKE_ATTACHMENT_ID_2']
+        FAKE_SF_QUERY_RESPONSES = (
+            {
+                'records': [
+                    {
+                        'Id': 'FAKE_ATTACHMENT_ID_1',
+                        'Name': 'FAKE_NAME_1',
+                        'ContentType': 'FAKE_CONTENT_TYPE_1',
+                    },
+                    {
+                        'Id': 'FAKE_ATTACHMENT_ID_2',
+                        'Name': 'FAKE_NAME_2',
+                        'ContentType': 'FAKE_CONTENT_TYPE_2',
+                    },
+                 ]
+            },
+        )
+        contract_id = ['FAKE_CONTRACT_ID_1']
+        with patch.object(Salesforce, '__init__', return_value=None), \
+                patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
+            result = get_contract_attachments(contract_id)
+        for attachment in result:
+            self.assertIn(attachment['salesforce_id'], FAKE_ATTACHMENT_ID)
+
+
+    def test_fetch_attachment(self):
+        pass
+
+
+    def test_download_attachment(self):
+        pass
