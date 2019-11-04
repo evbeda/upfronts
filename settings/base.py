@@ -11,9 +11,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-import dj_database_url
-
-from . import get_env_variable
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,9 +20,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '%(rnx7)(@ovg2k%ajxv&@s^ioy%%^f8li)9o!%lvon0tdgdk^3'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = [
     'upfronts.herokuapp.com',
@@ -98,18 +92,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'upfronts.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-DB_FROM_ENV = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(DB_FROM_ENV)
+DATABASES = {}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -148,25 +131,8 @@ USE_L10N = True
 USE_TZ = True
 
 
-SOCIAL_AUTH_EVENTBRITE_KEY = get_env_variable('SOCIAL_AUTH_EVENTBRITE_KEY')
-SOCIAL_AUTH_EVENTBRITE_SECRET = get_env_variable(
-    'SOCIAL_AUTH_EVENTBRITE_SECRET',
-)
-
 PAGINATION_SETTINGS = {
     'PAGE_RANGE_DISPLAYED': 3,
     'MARGIN_PAGES_DISPLAYED': 2,
-
-    'SHOW_FIRST_PAGE_WHEN_INVALID': True,
-}
-
-DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-DROPBOX_OAUTH2_TOKEN = get_env_variable('DROPBOX_OAUTH2_TOKEN')
-DROPBOX_ROOT_PATH = '/Backup_Files'
-
-PAGINATION_SETTINGS = {
-    'PAGE_RANGE_DISPLAYED': 3,
-    'MARGIN_PAGES_DISPLAYED': 2,
-
     'SHOW_FIRST_PAGE_WHEN_INVALID': True,
 }
