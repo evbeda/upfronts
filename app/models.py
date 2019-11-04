@@ -17,7 +17,7 @@ class Contract(models.Model):
     case_number = models.CharField(max_length=80, unique=True)
     salesforce_id = models.CharField(max_length=80)
     salesforce_case_id = models.CharField(max_length=80)
-    link_to_salesforce_case = models.CharField(max_length=40)
+    link_to_salesforce_case = models.CharField(max_length=120)
 
     @property
     def details(self):
