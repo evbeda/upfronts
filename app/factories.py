@@ -2,7 +2,6 @@ from factory import (
     DjangoModelFactory,
     SubFactory,
 )
-from django.utils import timezone
 
 from . import models
 
@@ -13,7 +12,7 @@ class ContractFactory(DjangoModelFactory):
 
     organizer_account_name = 'EDA'
     organizer_email = 'test@test.com'
-    signed_date = timezone.now()
+    signed_date = '2019-09-14'
     description = 'some description'
     case_number = '47238934'
     salesforce_id = '7908235'

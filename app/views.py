@@ -107,8 +107,6 @@ class ContractUpdate(UpdateView):
         context = super().get_context_data(**kwargs)
         context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
             email_organizer=context['object'].organizer_email)
-        import ipdb;
-        ipdb.set_trace()
         return context
 
 

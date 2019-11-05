@@ -332,23 +332,25 @@ class UpdateContractTest(TestCase):
     def test_update_contract(self):
         factory = RequestFactory()
         contract = ContractFactory()
-        contract_data = contract.__dict__
-        kwargs = {
-            'pk':contract.id,
+        contract_data = {
+            'organizer_account_name': 'EDDA',
+            'organizer_email': 'juan@eventbrite.com',
+            'signed_date': '2019-09-25',
+            'user_id': '9385',
         }
-        contract_data['organizer_account_name'] = 'Organizer'
-        contract_data['organizer_email'] = 'organizer@test.com'
-        contract_data['user_id'] = '234523'
+        kwargs = {
+            'pk': contract.id,
+        }
         request = factory.post(
-            reverse('contracts-update', args=[contract.id]), contract_data
+            reverse('contracts-update', kwargs=kwargs),
+            contract_data,
         )
         ContractUpdate.as_view()(request, **kwargs)
-        contract_updated = Contract.objects.first()
-        import ipdb;
-        ipdb.set_trace()
-        self.assertEqual(contract_data['user_id'], contract_updated.user_id)
-        self.assertEqual(contract_data['organizer_account_name'], contract_updated.organizer_account_name)
-        self.assertEqual(contract_data['organizer_email'], contract_updated.organizer_email)
+        contract.refresh_from_db()
+        self.assertEqual(contract_data['organizer_account_name'], contract.organizer_account_name)
+        self.assertEqual(contract_data['organizer_email'], contract.organizer_email)
+        self.assertEqual(contract_data['signed_date'], contract.signed_date.strftime("%Y-%m-%d"))
+        self.assertEqual(contract_data['user_id'], contract.user_id)
 
 
 class TestDownloadCsv(TestCase):
