@@ -66,15 +66,7 @@
           </div>
           {% include "_pagination.html" %}
           <div class="float-right ml-2" >
-            <div class="dropdown">
-                <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown">
-                    Export to
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">
-                  <a id="export-csv" class="dropdown-item" href=""><i class="fas fa-file-csv"></i> CSV</a>
-                  <a class="dropdown-item disabled" href="#"><i class="fas fa-file-excel"> </i> Excel (WIP)</a>
-                </div>
-            </div>
+            <a id="export-csv" class="btn btn-outline-success" href="">Export to <i class="fas fa-file-csv"></i></a>
           </div>
         {% else %}
           <div class="jumbotron jumbotron-fluid empty-state">
