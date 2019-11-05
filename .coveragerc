@@ -11,6 +11,7 @@ omit =
     */migrations*
     */apps.py
     */wsgi.py
+    manage.py
 
 [report]
 exclude_lines =

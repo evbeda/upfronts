@@ -1,4 +1,4 @@
-from upfronts import get_env_variable
+from settings import get_env_variable
 
 
 INVALID_SIGN_DATE = '5678'
