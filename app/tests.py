@@ -43,6 +43,7 @@ from app.views import (
     ContractAdd,
     ContractsFilter,
     ContractsTableView,
+    ContractUpdate,
     CreateEvent,
     DeleteEvent,
     DeleteUploadedFileCondition,
@@ -330,16 +331,24 @@ class UpdateContractTest(TestCase):
 
     def test_update_contract(self):
         factory = RequestFactory()
-        contract_data = {
-            'organizer_account_name': 'Planner Eventos',
-            'organizer_email': 'pepe@planner.com',
-            'signed_date': '2019-09-14',
+        contract = ContractFactory()
+        contract_data = contract.__dict__
+        kwargs = {
+            'pk':contract.id,
         }
-        contract = Contract.objects.create(**contract_data)
+        contract_data['organizer_account_name'] = 'Organizer'
+        contract_data['organizer_email'] = 'organizer@test.com'
         contract_data['user_id'] = '234523'
         request = factory.post(
-            reverse('contracts-update', args=[contract.id]), contract_data, content_type='application/json')
-        self.assertIn(bytes(contract_data['user_id'], encoding='utf-8'), request.body)
+            reverse('contracts-update', args=[contract.id]), contract_data
+        )
+        ContractUpdate.as_view()(request, **kwargs)
+        contract_updated = Contract.objects.first()
+        import ipdb;
+        ipdb.set_trace()
+        self.assertEqual(contract_data['user_id'], contract_updated.user_id)
+        self.assertEqual(contract_data['organizer_account_name'], contract_updated.organizer_account_name)
+        self.assertEqual(contract_data['organizer_email'], contract_updated.organizer_email)
 
 
 class TestDownloadCsv(TestCase):
