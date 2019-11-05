@@ -1,4 +1,4 @@
-from upfronts import get_env_variable
+from settings import get_env_variable
 
 
 INVALID_SIGN_DATE = '5678'
@@ -25,3 +25,5 @@ SUPERSET_QUERY_DATE_FORMAT = "%Y-%m-%d"
 SUPERSET_DEFAULT_CURRENCY = 'BRL'
 
 ITEMS_PER_PAGE = 15
+
+DROPBOX_ERROR = "There was an error trying to connect with the file storage."

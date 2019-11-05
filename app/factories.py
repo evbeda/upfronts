@@ -2,7 +2,6 @@ from factory import (
     DjangoModelFactory,
     SubFactory,
 )
-
 from django.utils import timezone
 
 from . import models
@@ -37,6 +36,14 @@ class InstallmentFactory(DjangoModelFactory):
     gts = 346897
 
 
+class InstallmentConditionFactory(DjangoModelFactory):
+    class Meta:
+        model = models.InstallmentCondition
+
+    installment = SubFactory(InstallmentFactory)
+    condition_name = "Promissory note"
+
+
 class AttachmentFactory(DjangoModelFactory):
     class Meta:
         model = models.Attachment
@@ -45,3 +52,12 @@ class AttachmentFactory(DjangoModelFactory):
     salesforce_id = "test_id"
     content_type = "application/pdf"
     contract = SubFactory(ContractFactory)
+
+
+class EventFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Event
+
+    contract = SubFactory(ContractFactory)
+    event_id = "534f938"
+    event_name = "Festival"

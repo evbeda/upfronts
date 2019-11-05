@@ -16,26 +16,31 @@
 
 {% block content %}
     <div class='p-3'>
-        <div>
-            <div class="m-2">
-                <h1>Contracts</h1>
+        <div class="m-2">
+            <h1>Contracts</h1>
+        </div>
+        {% if table.data %}
+          {% if filter %}
+              <form action="" method="get" class="form form-inline">
+                  {% bootstrap_form filter.form layout='inline' %}
+                  {% bootstrap_button '<i class="fab fa-sistrix"></i>' %}
+              </form>
+          {% endif %}
+          <div class="mt-4 table-wrapper">
+              {% render_table table %}
+          </div>
+          <div class="float-right">
+              <a href="{% url 'contracts-add' %}" role="button" class="btn btn-outline-primary">ADD <i class="fas fa-plus"></i></a>
+          </div>
+          {% include "_pagination.html" %}
+        {% else %}
+          <div class="jumbotron jumbotron-fluid empty-state">
+            <div class="container">
+              <h1 class="display-4">Oops!</h1>
+              <p class="lead">There are no contracts yet. Start by adding a contract <a href="{% url 'contracts-add' %}">here</a>.</p>
             </div>
-            <div class="float-right">
-                <button type="button" class="btn btn-primary"><i class="fas fa-sync"></i></button>
-            </div>
-            {% if filter %}
-                <form action="" method="get" class="form form-inline">
-                    {% bootstrap_form filter.form layout='inline' %}
-                    {% bootstrap_button '<i class="fab fa-sistrix"></i>' %}
-                </form>
-            {% endif %}
-        </div>
-        <div class="mt-4">
-            {% render_table table %}
-        </div>
-        <div class="float-right">
-            <a href="{% url 'contracts-add' %}" role="button" class="btn btn-outline-primary">ADD <i class="fas fa-plus"></i></a>
-        </div>
-    {% include "_pagination.html" %}
+          </div>
+        {% endif %}
+
     </div>
 {% endblock content %}

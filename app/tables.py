@@ -66,7 +66,7 @@ class InstallmentsTable(tables.Table):
 
 class ContractsTable(tables.Table):
     installments = tables.Column(orderable=False)
-    edit = tables.Column(orderable=False)
+    details = tables.Column(orderable=False)
 
     class Meta:
         model = Contract
@@ -80,14 +80,13 @@ class ContractsTable(tables.Table):
             'organizer_account_name',
             'organizer_email',
             'user_id',
-            'event_id',
             'signed_date',
         )
 
-    def render_edit(self, value):
+    def render_details(self, value):
         return format_html(
-            '<a href="{}"><i class="far fa-edit"></i></a>'.format(reverse(
-                'contracts-update', args=(value.id,))
+            '<a href="{}"><i class="fas fa-stream"></i></a>'.format(reverse(
+                'contracts-detail', args=(value.id,))
             )
         )
 
@@ -119,10 +118,9 @@ class FetchSalesForceCasesTable(tables.Table):
     class Meta:
         template_name = "django_tables2/bootstrap.html"
 
-    def render_case_id(self, value):
-        link_to_salesforce_case = self.data.data[0]['link_to_salesforce_case']
+    def render_case_id(self, value, record):
         return format_html(
-            '''<a href="{}">{}</a>'''.format(link_to_salesforce_case, value)
+            '''<a href="{}">{}</a>'''.format(record['link_to_salesforce_case'], value)
         )
 
     def render_save(self, value):

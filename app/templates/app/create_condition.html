@@ -7,82 +7,130 @@
 {% block head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/create_condition.css' %}">
+    <script src="{% static 'js/create_condition.js' %}"></script>
 {% endblock %}
 
 {% block title %} Create condition {% endblock title %}
 
 {% block content %}
-    <div class='m-5 p-3'>
-        <div class="row justify-content-center m-3">
-                <div class="card width-card">
-                  <div class="card-body">
-                    <h5 class="card-title">Installment</h5>
-                    <p class="card-text">
-                      <li class="m-2"> <b>Organizer: </b> {{ installment.contract.organizer_account_name }}</li>
-                      <li class="m-2"> <b>Recoupable: </b> {{ installment.is_recoup }}</li>
-                      <li class="m-2"> <b>Max payment date: </b> {{ installment.maximum_payment_date }}</li>
-                      <li class="m-2"> <b>Upfront projection: </b> {{ installment.upfront_projection }}</li>
-                      <li class="m-2"> <b>Recoup amount: </b> {{ installment.recoup_amount }}</li>
-                      <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
-                      <li class="m-2"> <b>GTF: </b> {{ installment.gtf }}</li>
-                      <li class="m-2"> <b>GTS: </b> {{ installment.gts }}</li>
-                    </p>
-                  </div >
+        <div class='m-5 p-3'>
+            {% if messages %}
+            <div class="alert alert-danger">
+              {% for message in messages %}
+                {{ message }}
+              {% endfor %}
+            </div>
+            {% endif %}
+              <div class="row justify-content-center m-3">
+                  <div class="card width-card">
+                    <div class="card-body">
+                      <h5 class="card-title">Installment</h5>
+                      <p class="card-text">
+                        <li class="m-2"> <b>Organizer: </b> {{ installment.contract.organizer_account_name }}</li>
+                        <li class="m-2"> <b>Recoupable: </b> {{ installment.is_recoup }}</li>
+                        <li class="m-2"> <b>Max payment date: </b> {{ installment.maximum_payment_date }}</li>
+                        <li class="m-2"> <b>Upfront projection: </b> {{ installment.upfront_projection }}</li>
+                        <li class="m-2"> <b>Recoup amount: </b> {{ installment.recoup_amount }}</li>
+                        <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
+                        <li class="m-2"> <b>GTF: </b> {{ installment.gtf }}</li>
+                        <li class="m-2"> <b>GTS: </b> {{ installment.gts }}</li>
+                      </p>
+                    </div >
+                  </div>
+              </div>
+              <div class="container">
+                <div class="m-4">
+                  <h4>Check GTS/GTF</h4>
+                  <form id="superset-link" action="">
+                    <label for="event-id">Event id:</label>
+                    <input id="event-id" name="event-id" class="mr-4" placeholder="Event id">
+                    <label for="from-date">From:</label>
+                    <input id="from-date" name="from-date" class="m-2" placeholder="From date">
+                    <label for="to-date">To:</label>
+                    <input id="to-date" name="to-date" class="m-2" placeholder="To date">
+                    <label for="currency">Currency:</label>
+                    <input id="currency" name="currency" class="m-2" placeholder="Currency" value="{{ SUPERSET_DEFAULT_CURRENCY }}">
+                    <input class="btn btn-primary m-2" type="submit" value="Copy query">
+                  </form>
                 </div>
-        </div>
-        <div class="container">
-          <div class="m-4">
-            <h4>Check GTS/GTF</h4>
-            <form id="superset-link" action="">
-              <label for="event-id">Event id:</label>
-              <input id="event-id" name="event-id" class="mr-4" type="" placeholder="Event id" value="{{ installment.contract.event_id }}">
-              <label for="from-date">From:</label>
-              <input id="from-date" name="from-date" class="m-2" type="" placeholder="From date">
-              <label for="to-date">To:</label>
-              <input id="to-date" name="to-date" class="m-2" type="" placeholder="To date">
-              <label for="currency">Currency:</label>
-              <input id="currency" name="currency" class="m-2" type="" placeholder="Currency" value="{{ SUPERSET_DEFAULT_CURRENCY }}">
-              <input class="btn btn-primary m-2" type="submit" value="Copy query">
-            </form>
-          </div>
-        </div>
-        <table class="table container">
-          <tr>
-            <th>Condition name</th>
-            <th>Date modified</th>
-            <th>Actions</th>
-          </tr>
-          {% for object in object_list %}
-          <tr>
-            <td>{{ object.condition_name }}</td>
-            <td>{% if object.done %}{{ object.done }} {% endif %}</td>
-            <td>
-              <form action="{% url 'toggle-condition' installment.contract_id installment.id object.id %}" method="POST">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-primary" type="submit">
-                    {% if object.done %}
-                      Undo
-                    {% else %}
-                      Mark as Done
-                    {% endif %}
-                  </button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </table>
-        <div class="row justify-content-center m-5">
-            <div class="col-6">
-                <form method="post">{% csrf_token %}
-                    <div class="m-2">
-                        <h2>Create condition</h2>
-                    </div>
-                    <div class="container">
-                        {% bootstrap_form form layout='horizontal' %}
-                        <div class="form-group row">
-                            <div class="col-sm-10 offset-sm-2">
-                                <div class="float-right">
-                                    <input type='submit' class="btn btn-outline-primary" value='Save' />
+              </div>
+            <table class="table container">
+              <tr>
+                <th>Condition name</th>
+                <th>Date modified</th>
+                <th>Actions</th>
+                <th>Preview</th>
+                <th>Download</th>
+                <th>Upload a File (.pdf, .xls, .png, .jpeg)</th>
+                <th>Action</th>
+              </tr>
+              {% for object in object_list %}
+              <tr>
+                <td>{{ object.condition_name }}</td>
+                <td>{% if object.done %}{{ object.done }} {% endif %}</td>
+                <td>
+                  <form action="{% url 'toggle-condition' installment.contract_id installment.id object.id %}" method="POST">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-primary" type="submit">
+                        {% if object.done %} 
+                          Undo
+                        {% else %} 
+                          Mark as Done
+                        {% endif %}
+                      </button>
+                  </form> 
+                </td>
+                {% if object.upload_file %}
+                  <td>
+                    <a target="_blank" href="http://docs.google.com/gview?url={{ object.upload_file.url }}"><i class="fas fa-search"></i></a>
+                  </td>
+                  <td>
+                    <a href="{{ object.upload_file.url }}"><i class="fas fa-download"></i></a>
+                  </td>
+                  <td>
+                    {{object.upload_file}}
+                  </td>
+                  <td>
+                    <form class="delete-file-form" action="{% url 'delete-uploaded-file' installment.contract_id installment.id object.id %}" method="POST">
+                      {% csrf_token %}
+                      <button class="btn btn-link" type="submit">
+                        <i class="far fa-trash-alt"></i>
+                      </button>
+                    </form>
+                  </td>
+                  {% else %}
+                  <td>
+                    <a><i class="fas fa-search"></i></a>
+                  </td>
+                  <td>
+                    <a><i class="fas fa-download"></i></a>
+                  </td>
+                  <form enctype="multipart/form-data" method="POST" action="{% url 'condition_backup_proof' installment.contract_id installment.id object.id %}">
+                    {% csrf_token %}
+                    <td>
+                      <input type="file" name="backup_file" accept="application/pdf, application/vnd.ms-excel, image/png, image/jpeg, image/jpg">
+                    </td>
+                    <td>
+                      <input type="submit" value="Upload"/>
+                    </td>
+                    </form>
+                  {% endif %}
+              </tr>
+              {% endfor %}
+            </table>
+            <div class="row justify-content-center m-5">
+                <div class="col-6">
+                    <form method="post">{% csrf_token %}
+                        <div class="m-2">
+                            <h2>Create condition</h2>
+                        </div>
+                        <div class="container">
+                            {% bootstrap_form form layout='horizontal' %}
+                            <div class="form-group row">
+                                <div class="col-sm-10 offset-sm-2">
+                                    <div class="float-right">
+                                        <input type='submit' class="btn btn-outline-primary" value='Save' />
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -1,8 +1,11 @@
 from io import BytesIO
 import csv
 import datetime
+import operator
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import DateInput
 from django.http import (
@@ -10,12 +13,13 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
     DeleteView,
+    DetailView,
     ListView,
     UpdateView,
     TemplateView,
@@ -29,10 +33,12 @@ from django_filters import (
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.utils.decorators import method_decorator
+from dropbox.exceptions import BadInputError
 from pure_pagination.mixins import PaginationMixin
 
 from app import (
     BASIC_CONDITIONS,
+    DROPBOX_ERROR,
     ITEMS_PER_PAGE,
     LINK_TO_RECOUPS,
     LINK_TO_REPORT_EVENTS,
@@ -44,6 +50,7 @@ from app import (
 from app.models import (
     Attachment,
     Contract,
+    Event,
     Installment,
     InstallmentCondition,
 )
@@ -92,7 +99,7 @@ class ContractsFilter(FilterSet):
 class ContractUpdate(UpdateView):
     template_name = "app/update_contract.html"
     model = Contract
-    fields = ["organizer_account_name", "organizer_email", "signed_date", "event_id", "user_id"]
+    fields = ["organizer_account_name", "organizer_email", "signed_date", "user_id"]
     success_url = reverse_lazy('contracts')
 
     def get_context_data(self, **kwargs):
@@ -136,7 +143,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context['attachments'] = attachments
         context['contract'] = contract
         context['link_to_recoup'] = LINK_TO_RECOUPS
-        context['link_to_event'] = LINK_TO_REPORT_EVENTS.format(contract.event_id)
         context['form'].fields['maximum_payment_date'].widget = DateInput(
             attrs={
                 'id': 'datepicker_maximum_payment_date',
@@ -163,48 +169,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
                 condition_name=condition,
             )
         return super(InstallmentView, self).form_valid(form)
-
-
-def download_csv(request):
-    response = HttpResponse(content_type='text/csv')
-    filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
-    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-    installments = Installment.objects.all()
-    writer = csv.writer(response)
-    for installment in installments:
-        writer.writerow([
-            installment.is_recoup,
-            installment.status,
-            installment.contract.organizer_account_name,
-            installment.contract.organizer_email,
-            installment.contract.signed_date,
-            installment.upfront_projection,
-            installment.recoup_amount,
-            installment.balance,
-            installment.maximum_payment_date,
-            installment.payment_date,
-            installment.gts,
-            installment.gtf,
-        ])
-    return response
-
-
-def download_attachment(request, **kwargs):
-    sf = SalesforceQuery()
-    attachment_id = kwargs['attachment_id']
-    attachment = Attachment.objects.filter(id=attachment_id).get()
-    content_type = attachment.content_type
-    extension = content_type.split('/')[-1]
-    name = attachment.name.replace(',', '-')
-    filename = name + '.' + extension
-    content_disposition = "attachment; filename=" + filename
-    salesforce_attachment_id = attachment.salesforce_id
-    attachment_content = sf.fetch_attachment(salesforce_attachment_id, content_type)
-    buffer = BytesIO()
-    buffer.write(attachment_content.content)
-    response = HttpResponse(buffer.getvalue(), content_type='{}'.format(content_type))
-    response["Content-Disposition"] = content_disposition.encode('utf-8')
-    return response
 
 
 class ContractAdd(TemplateView):
@@ -307,6 +271,26 @@ class ToggleConditionView(View):
         return redirect('conditions', contract_id, installment_id)
 
 
+class ConditionBackupProofView(View):
+
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+
+        condition_id = self.kwargs.get('condition_id')
+        try:
+            condition = InstallmentCondition.objects.get(pk=condition_id)
+            condition.upload_file = self.request.FILES.get('backup_file')
+            condition.full_clean()
+            condition.save()
+        except ValidationError as e:
+            for msg in e.messages:
+                messages.add_message(request, messages.ERROR, msg)
+        except BadInputError:
+            messages.add_message(request, messages.ERROR, DROPBOX_ERROR)
+        return redirect('conditions', contract_id, installment_id)
+
+
 class InstallmentsFilter(FilterSet):
     search_organizer = CharFilter(
         label='Search organizer',
@@ -348,8 +332,6 @@ class InstallmentsFilter(FilterSet):
     )
     status = ChoiceFilter(
         choices=STATUS,
-        # initial='COMMITED/APPROVED',
-        # label='Status',
         empty_label='Status options',
         method='search_status',
         lookup_expr='icontains',
@@ -388,38 +370,41 @@ class InstallmentsFilter(FilterSet):
 
 class AllInstallmentsView(LoginRequiredMixin, FilterView, PaginationMixin, ListView):
     model = Installment
-    template_name = "app/all-installments.html"
+    template_name = "app/all_installments.html"
     filterset_class = InstallmentsFilter
     paginate_by = ITEMS_PER_PAGE
 
     def get(self, request, *args, **kwargs):
         filtered_response = super().get(request, *args, **kwargs)
-        if 'download' in filtered_response.context_data['url']:
+        if self.request.GET.get('download'):
             response = HttpResponse(content_type='text/csv')
-            filename = "{}-upfronts.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
+            filename = "{}-installments.csv".format(datetime.datetime.now().replace(microsecond=0).isoformat())
             response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
             installments = filtered_response.context_data['installment_list']
             writer = csv.writer(response)
+            fields = [
+                'is_recoup',
+                'status',
+                'contract.organizer_account_name',
+                'recoup_amount',
+                'upfront_projection',
+                'balance',
+                'contract.organizer_email',
+                'contract.signed_date',
+                'upfront_projection',
+                'maximum_payment_date',
+                'payment_date',
+                'gts',
+                'gtf',
+            ]
+            writer.writerow(fields)
             for installment in installments:
-                writer.writerow([
-                    installment.is_recoup,
-                    installment.status,
-                    installment.contract.organizer_account_name,
-                    installment.contract.organizer_email,
-                    installment.contract.signed_date,
-                    installment.upfront_projection,
-                    installment.recoup_amount,
-                    installment.maximum_payment_date,
-                    installment.payment_date,
-                    installment.gts,
-                    installment.gtf,
-                ])
+                writer.writerow([operator.attrgetter(field)(installment) for field in fields])
             return response
         return filtered_response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['url'] = self.request.get_full_path()
         return context
 
 
@@ -484,3 +469,70 @@ class InstallmentDelete(DeleteView):
         contract_id = kwargs['contract_id']
         self.get_queryset().filter(id=kwargs['pk']).delete()
         return redirect("installments-create", contract_id)
+
+
+class DetailContractView(DetailView):
+    model = Contract
+    template_name = "app/detail_contract.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        contract = context['contract']
+        events = []
+        context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
+            email_organizer=contract.organizer_email)
+        context['link_to_recoup'] = LINK_TO_RECOUPS
+        query_events = contract.events.all()
+        for event in query_events:
+            event.link_to_event = LINK_TO_REPORT_EVENTS.format(event.event_id)
+            events.append(event)
+        context['events'] = events
+        return context
+
+
+class CreateEvent(View):
+
+    def post(self, request, *args, **kwargs):
+        contract = Contract.objects.get(pk=self.kwargs['contract_id'])
+        Event.objects.create(
+            event_name=request.POST['Event Name'],
+            event_id=request.POST['Event id'],
+            contract=contract,
+        )
+        return redirect('contracts-detail', contract.id)
+
+
+class DeleteEvent(View):
+
+    def post(self, request, *args, **kwargs):
+        event = Event.objects.get(id=self.kwargs['event_id'])
+        event.delete()
+        return redirect('contracts-detail', self.kwargs['contract_id'])
+
+
+def download_attachment(request, **kwargs):
+    sf = SalesforceQuery()
+    attachment_id = kwargs['attachment_id']
+    attachment = Attachment.objects.filter(id=attachment_id).get()
+    content_type = attachment.content_type
+    extension = content_type.split('/')[-1]
+    name = attachment.name.replace(',', '-')
+    filename = name + '.' + extension
+    content_disposition = "attachment; filename=" + filename
+    salesforce_attachment_id = attachment.salesforce_id
+    attachment_content = sf.fetch_attachment(salesforce_attachment_id, content_type)
+    buffer = BytesIO()
+    buffer.write(attachment_content.content)
+    response = HttpResponse(buffer.getvalue(), content_type='{}'.format(content_type))
+    response["Content-Disposition"] = content_disposition.encode('utf-8')
+    return response
+
+
+class DeleteUploadedFileCondition(View):
+    def post(self, request, *args, **kwargs):
+        contract_id = self.kwargs.get('contract_id')
+        installment_id = self.kwargs.get('installment_id')
+        condition_id = self.kwargs.get('condition_id')
+        condition = InstallmentCondition.objects.get(pk=condition_id)
+        condition.delete_upload_file()
+        return redirect('conditions', contract_id, installment_id)

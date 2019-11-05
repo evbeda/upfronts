@@ -137,3 +137,11 @@ background-color:#39364f;
   }
 
 }
+
+.empty-state a {
+  color: orange;
+}
+
+.table-wrapper {
+  overflow-x: scroll;
+}
