@@ -199,7 +199,7 @@ def download_attachment(request, **kwargs):
     filename = name + '.' + extension
     content_disposition = "attachment; filename=" + filename
     salesforce_attachment_id = attachment.salesforce_id
-    attachment_content = sf.fetch_attachment(salesforce_attachment_id)
+    attachment_content = sf.fetch_attachment(salesforce_attachment_id, content_type)
     buffer = BytesIO()
     buffer.write(attachment_content.content)
     response = HttpResponse(buffer.getvalue(), content_type='{}'.format(content_type))
@@ -212,6 +212,7 @@ class ContractAdd(TemplateView):
     template_name = "app/add_contracts.html"
 
     def get_context_data(self, **kwargs):
+        sf = SalesforceQuery()
         context = super().get_context_data(**kwargs)
         case_numbers = self.request.GET.get('case_numbers') or self.kwargs.get('case_numbers')
         date_from = self.request.GET.get('case_date_from')
@@ -221,7 +222,7 @@ class ContractAdd(TemplateView):
             try:
                 date_from_formated = '{2}-{0}-{1}T00:00:00.000+0000'.format(*date_from.split('/'))
                 date_to_formated = '{2}-{0}-{1}T23:59:59.000+0000'.format(*date_to.split('/'))
-                contract_data = fetch_cases_by_date(date_from_formated, date_to_formated)
+                contract_data = sf.fetch_cases_by_date(date_from_formated, date_to_formated)
                 for elem in contract_data:
                     elem['save'] = elem['case_id']
                     context["table"] = FetchSalesForceCasesTable(contract_data)
@@ -229,7 +230,7 @@ class ContractAdd(TemplateView):
                 context["message"] = "Please enter both dates"
         if case_numbers:
             try:
-                contract_data = fetch_cases(case_numbers)
+                contract_data = sf.fetch_cases(case_numbers)
                 for elem in contract_data:
                     elem['save'] = elem['case_id']
                 context['table'] = FetchSalesForceCasesTable(contract_data)
@@ -242,11 +243,12 @@ class ContractAdd(TemplateView):
 class SaveCaseView(View):
 
     def post(self, request, *args, **kwargs):
+        sf = SalesforceQuery()
         case_id = self.kwargs['contract_id']
-        case_data = get_case_by_id(case_id)
+        case_data = sf.get_case_by_id(case_id)
         contract_id = case_data['Contract__c']
-        contract_data = get_contract_by_id(contract_id)
-        attachments_data = fetch_contract_attachments(contract_id)
+        contract_data = sf.get_contract_by_id(contract_id)
+        attachments_data = sf.fetch_contract_attachments(contract_id)
         contract = Contract.objects.create(
             organizer_account_name=contract_data['Hoopla_Account_Name__c'],
             organizer_email=contract_data['Eventbrite_Username__c'],

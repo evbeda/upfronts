@@ -35,3 +35,13 @@ class InstallmentFactory(DjangoModelFactory):
     recoup_amount = 736372
     gtf = 873456
     gts = 346897
+
+
+class AttachmentFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Attachment
+
+    name = "test"
+    salesforce_id = "test_id"
+    content_type = "application/pdf"
+    contract = SubFactory(ContractFactory)

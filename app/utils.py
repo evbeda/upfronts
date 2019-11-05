@@ -15,7 +15,11 @@ from app import (
 class SalesforceQuery:
 
     def __init__(self):
-        self.sf = Salesforce(username=SF_USERNAME, password=SF_PASSWORD, security_token=SF_SECURITY_TOKEN, domain=SF_DOMAIN)
+        self.sf = Salesforce(username=SF_USERNAME,
+                             password=SF_PASSWORD,
+                             security_token=SF_SECURITY_TOKEN,
+                             domain=SF_DOMAIN,
+                             )
 
     def fetch_cases(self, comma_separated_case_numbers):
         case_numbers = comma_separated_case_numbers.split(',')
@@ -99,18 +103,16 @@ class SalesforceQuery:
 
         return result
 
-    def fetch_attachment(self, attachment_id):
-        session_Id = self.sf.session_id
+    def fetch_attachment(self, attachment_id, content_type):
+        session_id = self.sf.session_id
         instance = self.sf.sf_instance
-        contract_attachment = self.sf.Attachment.get(attachment_id)
-        file_id = contract_attachment['Id']
-        content_type = contract_attachment['ContentType']
-        response = requests.get('https://' + instance + '/services/data/v39.0/sobjects/Attachment/' + file_id + '/body',
-                                headers={'Content-Type': content_type, 'Authorization': 'Bearer ' + session_Id})
+        response = requests.get('https://' + instance + '/services/data/v39.0/sobjects/Attachment/'
+                                + attachment_id + '/body',
+                                headers={'Content-Type': content_type, 'Authorization': 'Bearer ' + session_id})
         return response
 
 
-def generate_presto_query(vent_id=None, from_date=None, to_date=None, currency=None):
+def generate_presto_query(event_id=None, from_date=None, to_date=None, currency=None):
     currency = currency or 'BRL'
     from_date_condition = "AND trx_date > '{}'".format(
         from_date.strftime(SUPERSET_QUERY_DATE_FORMAT)
@@ -150,4 +152,3 @@ def generate_presto_query(vent_id=None, from_date=None, to_date=None, currency=N
     )
 
     return query
-
