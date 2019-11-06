@@ -11,6 +11,7 @@ from unittest.mock import (
 from django.contrib.auth.models import (
     User,
 )
+from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.test import (
@@ -147,11 +148,9 @@ class ContractTest(TestCase):
         }
         expected_error_dict_messages = {
             'contract': ['This field cannot be null.'],
-            'status': ['This field cannot be blank.'],
             'maximum_payment_date': [
                 "'{}' value has an invalid date format. It must be in YYYY-MM-DD format.".format(INVALID_PAYMENT_DATE)],
             'recoup_amount': ["'{}' value must be a decimal number.".format(INVALID_RECOUP_AMOUNT)],
-            'gtf': ['This field cannot be null.'],
         }
         installment = Installment(**installment_data)
         with self.assertRaises(ValidationError) as cm:
@@ -777,9 +776,15 @@ class AllInstallmentsViewTest(TestCase):
         request.user = User.objects.create_user(
             username='test', email='test@test.com', password='secret')
         response = AllInstallmentsView.as_view()(request)
-        self.assertIn(bytes(self.installment1.status, encoding='utf-8'), response.render().content)
-        self.assertIn(bytes(str(self.installment2.gtf), encoding='utf-8'), response.render().content)
-        self.assertIn(bytes(str(self.installment3.upfront_projection), encoding='utf-8'), response.render().content)
+        self.assertIn(
+            bytes(self.installment1.status, encoding='utf-8'), response.render().content
+        )
+        self.assertIn(
+            bytes(str(intcomma(self.installment2.gtf)), encoding='utf-8'), response.render().content
+        )
+        self.assertIn(
+            bytes(str(intcomma(self.installment3.upfront_projection)), encoding='utf-8'), response.render().content
+        )
 
     def test_filter_installment(self):
         qs = Installment.objects.all()

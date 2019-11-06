@@ -3,6 +3,7 @@
 {% load bootstrap4 %}
 {% load static %}
 {% bootstrap_css %}
+{% load humanize %}
 {% block head %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/installment_table.css' %}">
@@ -38,8 +39,6 @@
                   <th scope="col-sm">Maximum payment date</th>
                   <th scope="col-sm">Gtf</th>
                   <th scope="col-sm">Gts</th>
-                  <th scope="col-sm">Edit</th>
-                  <th scope="col-sm">Delete</th>
                 </tr>
               </thead>
               <tbody>
@@ -50,15 +49,13 @@
                   <td>{{installment.contract.signed_date}}</td>
                   <td>{{installment.is_recoup}}</td>
                   <td>{{installment.status}}</td>
-                  <td>{{installment.upfront_projection}}</td>
-                  <td>{{installment.recoup_amount}}</td>
-                  <td>{{installment.balance}}</td>
+                  <td>{{installment.upfront_projection|intcomma}}</td>
+                  <td>{{installment.recoup_amount|intcomma}}</td>
+                  <td>{{installment.balance|intcomma}}</td>
                   <td>{{installment.payment_date}}</td>
                   <td>{{installment.maximum_payment_date}}</td>
-                  <td>{{installment.gtf}}</td>
-                  <td>{{installment.gts}}</td>
-                  <td><a><i class="far fa-edit"></i></a></td>
-                  <td><a><i class="fas fa-trash-alt"></i></a></td>
+                  <td>{{installment.gtf|intcomma}}</td>
+                  <td>{{installment.gts|intcomma}}</td>
                 </tr>
               {% endfor %}
               </tbody>
