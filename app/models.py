@@ -30,18 +30,20 @@ class Contract(models.Model):
 
 class Installment(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
-    is_recoup = models.BooleanField()
-    status = models.CharField(max_length=80, choices=STATUS)
-    upfront_projection = models.DecimalField(max_digits=19, decimal_places=4)
-    maximum_payment_date = models.DateField()
-    payment_date = models.DateField()
-    recoup_amount = models.DecimalField(max_digits=19, decimal_places=4)
-    gtf = models.DecimalField(max_digits=19, decimal_places=4)
-    gts = models.DecimalField(max_digits=19, decimal_places=4)
+    is_recoup = models.BooleanField(blank=True)
+    status = models.CharField(max_length=80, choices=STATUS, null=True, blank=True)
+    upfront_projection = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
+    maximum_payment_date = models.DateField(null=True, blank=True)
+    payment_date = models.DateField(null=True, blank=True)
+    recoup_amount = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
+    gtf = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
+    gts = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
 
     @property
     def balance(self):
-        return self.upfront_projection - self.recoup_amount
+        upfront_projection = self.upfront_projection or 0
+        recoup_amount = self.recoup_amount or 0
+        return upfront_projection - recoup_amount
 
     @property
     def conditions(self):
