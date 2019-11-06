@@ -49,13 +49,29 @@
                   <td>{{installment.contract.signed_date}}</td>
                   <td>{{installment.is_recoup}}</td>
                   <td>{{installment.status}}</td>
+                  {% if installment.upfront_projection %}
                   <td>{{installment.upfront_projection|intcomma}}</td>
+                  {% else %}
+                  <td> - </td>
+                  {% endif %}
+                  {% if installment.recoup_amount %}
                   <td>{{installment.recoup_amount|intcomma}}</td>
+                  {% else %}
+                  <td> - </td>
+                  {% endif %}
                   <td>{{installment.balance|intcomma}}</td>
                   <td>{{installment.payment_date}}</td>
                   <td>{{installment.maximum_payment_date}}</td>
+                  {% if installment.gtf %}
                   <td>{{installment.gtf|intcomma}}</td>
+                  {% else %}
+                  <td> - </td>
+                  {% endif %}
+                  {% if installment.gts %}
                   <td>{{installment.gts|intcomma}}</td>
+                  {% else %}
+                  <td> - </td>
+                  {% endif %}
                 </tr>
               {% endfor %}
               </tbody>

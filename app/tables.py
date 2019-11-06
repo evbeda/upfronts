@@ -23,7 +23,7 @@ class InstallmentsTable(tables.Table):
     class Meta:
         model = Installment
         template_name = "django_tables2/bootstrap.html"
-        # exclude = ('id',)
+        exclude = ('id',)
         fields = (
             'is_recoup',
             'status',

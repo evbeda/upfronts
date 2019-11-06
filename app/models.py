@@ -41,7 +41,9 @@ class Installment(models.Model):
 
     @property
     def balance(self):
-        return self.upfront_projection - self.recoup_amount
+        upfront_projection = self.upfront_projection or 0
+        recoup_amount = self.recoup_amount or 0
+        return upfront_projection - recoup_amount
 
     @property
     def conditions(self):

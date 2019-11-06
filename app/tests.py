@@ -701,6 +701,23 @@ class InstallmentTest(TestCase):
         installment1 = Installment.objects.create(**installment_data)
         self.assertEqual(calculated_balance, installment1.balance)
 
+    def test_balance_with_empty_installment_fields(self):
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        installment_data = {
+            'contract': contract,
+            'is_recoup': False,
+        }
+        installment = Installment.objects.create(**installment_data)
+        self.assertEqual(0, installment.balance)
+        installment_data['upfront_projection'] = 1234
+        installment1 = Installment.objects.create(**installment_data)
+        self.assertEqual(installment_data['upfront_projection'], installment1.balance)
+
 
 class AllInstallmentsViewTest(TestCase):
 
