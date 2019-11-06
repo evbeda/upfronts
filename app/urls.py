@@ -7,7 +7,7 @@ from app import views
 urlpatterns = [
     url(r'^contracts/search/', views.ContractAdd.as_view(), name='contracts-add'),
     url(r'^contracts/update/(?P<pk>[0-9]+)/$', views.ContractUpdate.as_view(), name='contracts-update'),
-    url(r'^contracts/detail/(?P<pk>[0-9]+)/$', views.DetailContractView.as_view(), name='contracts-detail'),
+    url(r'^contracts/(?P<pk>[0-9]+)/detail/$', views.DetailContractView.as_view(), name='contracts-detail'),
     url(r'^contracts/save/(?P<contract_id>\w+)/$', views.SaveCaseView.as_view(), name='contracts-save'),
     url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/$',

@@ -145,3 +145,8 @@ background-color:#39364f;
 .table-wrapper {
   overflow-x: scroll;
 }
+
+.attachment-indent {
+  text-indent: 10%;
+  padding-bottom: 10px;;
+}

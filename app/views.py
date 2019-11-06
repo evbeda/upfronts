@@ -244,7 +244,8 @@ class ConditionView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         installment = Installment.objects.filter(id=self.kwargs['installment_id']).get()
-
+        attachments = Attachment.objects.filter(contract_id=self.kwargs['contract_id'])
+        context['attachments'] = attachments
         context['installment'] = installment
         context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
         context['SUPERSET_DEFAULT_CURRENCY'] = SUPERSET_DEFAULT_CURRENCY
@@ -477,7 +478,10 @@ class DetailContractView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        contract = context['contract']
+        contract = Contract.objects.filter(id=self.kwargs['pk']).get()
+        attachments = Attachment.objects.filter(contract_id=self.kwargs['pk'])
+        context['attachments'] = attachments
+        context['contract'] = contract
         events = []
         context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
             email_organizer=contract.organizer_email)
