@@ -22,7 +22,6 @@ from django.test import (
 )
 from django.urls import reverse
 from freezegun import freeze_time
-from simple_salesforce import Salesforce
 
 from app.factories import (
     AttachmentFactory,
