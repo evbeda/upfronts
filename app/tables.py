@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.humanize.templatetags.humanize import intcomma
 from django.urls import reverse
 from django.utils.html import format_html
 import django_tables2 as tables
@@ -22,7 +23,7 @@ class InstallmentsTable(tables.Table):
     class Meta:
         model = Installment
         template_name = "django_tables2/bootstrap.html"
-        exclude = ('id', 'gtf', 'gts')
+        exclude = ('id',)
         fields = (
             'is_recoup',
             'status',
@@ -31,16 +32,29 @@ class InstallmentsTable(tables.Table):
             'balance',
             'maximum_payment_date',
             'payment_date',
+            'gtf',
+            'gts',
         )
 
     def render_upfront_projection(self, value):
-        return '${:0.2f}'.format(value)
+        upfront_projection = intcomma('{:0.2f}'.format(value))
+        return '${}'.format(upfront_projection)
+
+    def render_gtf(self, value):
+        gtf = intcomma('{:0.2f}'.format(value))
+        return '${}'.format(gtf)
+
+    def render_gts(self, value):
+        gts = intcomma('{:0.2f}'.format(value))
+        return '${}'.format(gts)
 
     def render_recoup_amount(self, value):
-        return '${:0.2f}'.format(value)
+        recoup_amount = intcomma('{:0.2f}'.format(value))
+        return '${}'.format(recoup_amount)
 
     def render_balance(self, value):
-        return '${:0.2f}'.format(value)
+        balance = intcomma('{:0.2f}'.format(value))
+        return '${}'.format(balance)
 
     def render_edit(self, value):
         return format_html(
