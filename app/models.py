@@ -75,6 +75,13 @@ class InstallmentCondition(models.Model):
         self.save()
 
 
+class Attachment(models.Model):
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
+    salesforce_id = models.CharField(max_length=40)
+    name = models.CharField(max_length=80)
+    content_type = models.CharField(max_length=40)
+
+
 class Event(models.Model):
     event_id = models.CharField(max_length=40)
     event_name = models.CharField(max_length=40)

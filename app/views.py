@@ -1,3 +1,4 @@
+from io import BytesIO
 import csv
 import datetime
 import operator
@@ -47,6 +48,7 @@ from app import (
     SUPERSET_QUERY_DATE_FORMAT,
 )
 from app.models import (
+    Attachment,
     Contract,
     Event,
     Installment,
@@ -58,11 +60,8 @@ from app.tables import (
     InstallmentsTable,
 )
 from app.utils import (
-    fetch_cases,
-    fetch_cases_by_date,
     generate_presto_query,
-    get_case_by_id,
-    get_contract_by_id,
+    SalesforceQuery,
 )
 
 
@@ -140,6 +139,8 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
+        attachments = Attachment.objects.filter(contract_id=self.kwargs['contract_id'])
+        context['attachments'] = attachments
         context['contract'] = contract
         context['link_to_recoup'] = LINK_TO_RECOUPS
         context['form'].fields['gtf'].label = 'GTF'
@@ -177,6 +178,7 @@ class ContractAdd(TemplateView):
     template_name = "app/add_contracts.html"
 
     def get_context_data(self, **kwargs):
+        sf = SalesforceQuery()
         context = super().get_context_data(**kwargs)
         case_numbers = self.request.GET.get('case_numbers') or self.kwargs.get('case_numbers')
         date_from = self.request.GET.get('case_date_from')
@@ -186,7 +188,7 @@ class ContractAdd(TemplateView):
             try:
                 date_from_formated = '{2}-{0}-{1}T00:00:00.000+0000'.format(*date_from.split('/'))
                 date_to_formated = '{2}-{0}-{1}T23:59:59.000+0000'.format(*date_to.split('/'))
-                contract_data = fetch_cases_by_date(date_from_formated, date_to_formated)
+                contract_data = sf.fetch_cases_by_date(date_from_formated, date_to_formated)
                 for elem in contract_data:
                     elem['save'] = elem['case_id']
                     context["table"] = FetchSalesForceCasesTable(contract_data)
@@ -194,7 +196,7 @@ class ContractAdd(TemplateView):
                 context["message"] = "Please enter both dates"
         if case_numbers:
             try:
-                contract_data = fetch_cases(case_numbers)
+                contract_data = sf.fetch_cases(case_numbers)
                 for elem in contract_data:
                     elem['save'] = elem['case_id']
                 context['table'] = FetchSalesForceCasesTable(contract_data)
@@ -207,10 +209,12 @@ class ContractAdd(TemplateView):
 class SaveCaseView(View):
 
     def post(self, request, *args, **kwargs):
+        sf = SalesforceQuery()
         case_id = self.kwargs['contract_id']
-        case_data = get_case_by_id(case_id)
+        case_data = sf.get_case_by_id(case_id)
         contract_id = case_data['Contract__c']
-        contract_data = get_contract_by_id(contract_id)
+        contract_data = sf.get_contract_by_id(contract_id)
+        attachments_data = sf.fetch_contract_attachments(contract_id)
         contract = Contract.objects.create(
             organizer_account_name=contract_data['Hoopla_Account_Name__c'],
             organizer_email=contract_data['Eventbrite_Username__c'],
@@ -221,6 +225,13 @@ class SaveCaseView(View):
             salesforce_case_id=case_id,
             link_to_salesforce_case=case_data['Case_URL__c'],
         )
+        for attachment in attachments_data:
+            Attachment.objects.create(
+                name=attachment['name'],
+                salesforce_id=attachment['salesforce_id'],
+                content_type=attachment['content_type'],
+                contract=contract,
+            )
         return redirect('installments-create', contract.id)
 
 
@@ -235,7 +246,8 @@ class ConditionView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         installment = Installment.objects.filter(id=self.kwargs['installment_id']).get()
-
+        attachments = Attachment.objects.filter(contract_id=self.kwargs['contract_id'])
+        context['attachments'] = attachments
         context['installment'] = installment
         context['object_list'] = InstallmentCondition.objects.filter(installment_id=self.kwargs['installment_id']).all()
         context['SUPERSET_DEFAULT_CURRENCY'] = SUPERSET_DEFAULT_CURRENCY
@@ -323,8 +335,6 @@ class InstallmentsFilter(FilterSet):
     )
     status = ChoiceFilter(
         choices=STATUS,
-        # initial='COMMITED/APPROVED',
-        # label='Status',
         empty_label='Status options',
         method='search_status',
         lookup_expr='icontains',
@@ -470,7 +480,10 @@ class DetailContractView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        contract = context['contract']
+        contract = Contract.objects.filter(id=self.kwargs['pk']).get()
+        attachments = Attachment.objects.filter(contract_id=self.kwargs['pk'])
+        context['attachments'] = attachments
+        context['contract'] = contract
         events = []
         context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
             email_organizer=contract.organizer_email)
@@ -501,6 +514,24 @@ class DeleteEvent(View):
         event = Event.objects.get(id=self.kwargs['event_id'])
         event.delete()
         return redirect('contracts-detail', self.kwargs['contract_id'])
+
+
+def download_attachment(request, **kwargs):
+    sf = SalesforceQuery()
+    attachment_id = kwargs['attachment_id']
+    attachment = Attachment.objects.filter(id=attachment_id).get()
+    content_type = attachment.content_type
+    extension = content_type.split('/')[-1]
+    name = attachment.name.replace(',', '-')
+    filename = name + '.' + extension
+    content_disposition = "attachment; filename=" + filename
+    salesforce_attachment_id = attachment.salesforce_id
+    attachment_content = sf.fetch_attachment(salesforce_attachment_id, content_type)
+    buffer = BytesIO()
+    buffer.write(attachment_content.content)
+    response = HttpResponse(buffer.getvalue(), content_type='{}'.format(content_type))
+    response["Content-Disposition"] = content_disposition.encode('utf-8')
+    return response
 
 
 class DeleteUploadedFileCondition(View):

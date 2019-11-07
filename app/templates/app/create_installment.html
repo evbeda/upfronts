@@ -27,6 +27,14 @@
                             <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></li>
                         {% endif %}
                         <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></li>
+                        <li class="m-2"><b>Salesforce attachments: </b></li>
+                        {% if attachments %}
+                            {% for attachment in attachments %}
+                                <li class="attachment-indent"><a href="{% url 'download_attachment' attachment.id %}"><i class="far fa-file-pdf"></i></a> {{attachment.name}}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="attachment-indent">There is no uploaded attachments in Salesforce</li>
+                        {% endif %}
                     </p>
                   </div >
                 </div>

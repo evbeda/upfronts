@@ -44,6 +44,16 @@ class InstallmentConditionFactory(DjangoModelFactory):
     condition_name = "Promissory note"
 
 
+class AttachmentFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Attachment
+
+    name = "test"
+    salesforce_id = "test_id"
+    content_type = "application/pdf"
+    contract = SubFactory(ContractFactory)
+
+
 class EventFactory(DjangoModelFactory):
     class Meta:
         model = models.Event

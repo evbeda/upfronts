@@ -1,13 +1,15 @@
+import base64
 import csv
 import datetime
 import io
 import mock
+import requests
 from textwrap import dedent
 from unittest.mock import (
     MagicMock,
+    Mock,
     patch,
 )
-
 from django.contrib.auth.models import (
     User,
 )
@@ -21,9 +23,9 @@ from django.test import (
 )
 from django.urls import reverse
 from freezegun import freeze_time
-from simple_salesforce import Salesforce
 
 from app.factories import (
+    AttachmentFactory,
     ContractFactory,
     EventFactory,
     InstallmentConditionFactory,
@@ -62,10 +64,18 @@ from app.models import (
     InstallmentCondition,
 )
 from app.utils import (
-    fetch_cases,
-    fetch_cases_by_date,
     generate_presto_query,
+    SalesforceQuery,
 )
+
+
+def _generate_fake_salesforce_query_instance():
+    with patch.object(SalesforceQuery, '__init__', return_value=None):
+        sfq = SalesforceQuery()
+    sfq.sf = Mock()
+    sfq.sf.session_id = "FAKE_SESSION_ID"
+    sfq.sf.sf_instance = "FAKE_INSTANCE"
+    return sfq
 
 
 class ModelTest(TestCase):
@@ -471,9 +481,10 @@ class FetchCaseTests(TestCase):
             },
         )
         case_numbers = ['FAKE_CASE_NUMBER_1', 'FAKE_CASE_NUMBER_2']
-        with patch.object(Salesforce, '__init__', return_value=None), \
-                patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
-            result = fetch_cases(','.join(case_numbers))
+        sfq = _generate_fake_salesforce_query_instance()
+        with patch.object(sfq.sf, 'query', side_effect=FAKE_SF_QUERY_RESPONSES), \
+                patch.object(SalesforceQuery, '__init__', return_value=None):
+            result = sfq.fetch_cases(','.join(case_numbers))
         for elem in result:
             self.assertIn(elem['case_number'], case_numbers)
 
@@ -516,9 +527,9 @@ class FetchCaseTests(TestCase):
         )
         dates_from_to = ['FAKE_SIGNED_DATE_FROM_1', 'FAKE_SIGNED_DATE_TO_1']
         case_numbers = ['FAKE_CASE_NUMBER_1', 'FAKE_CASE_NUMBER_2']
-        with patch.object(Salesforce, '__init__', return_value=None), \
-                patch.object(Salesforce, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
-            result = fetch_cases_by_date(dates_from_to[0], dates_from_to[1])
+        sfq = _generate_fake_salesforce_query_instance()
+        with patch.object(sfq.sf, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
+            result = sfq.fetch_cases_by_date(dates_from_to[0], dates_from_to[1])
         for elem in result:
             self.assertIn(elem['case_number'], case_numbers)
 
@@ -554,7 +565,8 @@ class AddContractTests(TestCase):
                 'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
             },
         ]
-        with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
+        with patch('app.views.SalesforceQuery.fetch_cases', return_value=FAKE_FETCH_DATA), \
+                patch.object(SalesforceQuery, '__init__', return_value=None):
             response = ContractAdd.as_view()(request, **kwargs)
         self.assertEqual(response.status_code, 200)
         response = response.render().content
@@ -580,11 +592,17 @@ class AddContractTests(TestCase):
             'Eventbrite_Username__c': 'FAKE_ORGANIZER_EMAIL',
             'ActivatedDate': '2019-02-08T21:26:13.000+0000',
         }
+        FAKE_ATTACHMENT_RETURN = [{
+            'name': 'FAKE_ATTACHMENT_NAME',
+            'salesforce_id': 'FAKE_ATTACHMENT_SALESFORCE_ID',
+            'content_type': 'FAKE_ATTACHMENT_CONTENT_TYPE',
+        }]
 
-        with patch('app.views.get_case_by_id', return_value=FAKE_CASE_RETURN), \
-                patch('app.views.get_contract_by_id', return_value=FAKE_CONTRACT_RETURN):
+        with patch('app.views.SalesforceQuery.get_case_by_id', return_value=FAKE_CASE_RETURN), \
+                patch('app.views.SalesforceQuery.get_contract_by_id', return_value=FAKE_CONTRACT_RETURN), \
+                patch('app.views.SalesforceQuery.fetch_contract_attachments', return_value=FAKE_ATTACHMENT_RETURN), \
+                patch.object(SalesforceQuery, '__init__', return_value=None):
             response = SaveCaseView.as_view()(request, **kwargs)
-
         self.assertEqual(response.status_code, 302)
         contract = Contract.objects.first()
         self.assertEqual(contract.case_number, FAKE_CASE_RETURN['CaseNumber'])
@@ -606,7 +624,8 @@ class AddContractTests(TestCase):
                 'link_to_salesforce_case': 'https://pe33.zzxxzzz.com/5348fObs',
             },
         ]
-        with patch('app.views.fetch_cases', return_value=FAKE_FETCH_DATA):
+        with patch('app.views.SalesforceQuery.fetch_cases', return_value=FAKE_FETCH_DATA), \
+                patch.object(SalesforceQuery, '__init__', return_value=None):
             response = ContractAdd.as_view()(request, **kwargs)
         response = response.render().content
         self.assertIn(bytes("This contract already exists.", encoding='utf-8'), response)
@@ -974,6 +993,104 @@ class PrestoQueriesTest(TestCase):
                 datetime.datetime.strptime(TO_DATE, SUPERSET_QUERY_DATE_FORMAT),
             )
         )
+
+
+class DownloadAttachment(TestCase):
+
+    def test_get_one_contract_attachment(self):
+        FAKE_ATTACHMENT_ID = 'FAKE_ATTACHMENT_ID_1'
+        FAKE_SF_QUERY_RESPONSES = (
+            {
+                'records': [
+                    {
+                        'Id': 'FAKE_ATTACHMENT_ID_1',
+                        'Name': 'FAKE_NAME_1',
+                        'ContentType': 'FAKE_CONTENT_TYPE_1',
+                    },
+                 ]
+            },
+        )
+        contract_id = ['FAKE_CONTRACT_ID_1']
+        sfq = _generate_fake_salesforce_query_instance()
+        with patch.object(sfq.sf, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
+            result = sfq.fetch_contract_attachments(contract_id)
+        for attachment in result:
+            self.assertEqual(attachment['salesforce_id'], FAKE_ATTACHMENT_ID)
+
+    def test_get_contract_attachments(self):
+        FAKE_ATTACHMENT_ID = ['FAKE_ATTACHMENT_ID_1', 'FAKE_ATTACHMENT_ID_2']
+        FAKE_SF_QUERY_RESPONSES = (
+            {
+                'records': [
+                    {
+                        'Id': 'FAKE_ATTACHMENT_ID_1',
+                        'Name': 'FAKE_NAME_1',
+                        'ContentType': 'FAKE_CONTENT_TYPE_1',
+                    },
+                    {
+                        'Id': 'FAKE_ATTACHMENT_ID_2',
+                        'Name': 'FAKE_NAME_2',
+                        'ContentType': 'FAKE_CONTENT_TYPE_2',
+                    },
+                 ]
+            },
+        )
+        contract_id = ['FAKE_CONTRACT_ID_1']
+        sfq = _generate_fake_salesforce_query_instance()
+        with patch.object(sfq.sf, 'query', side_effect=FAKE_SF_QUERY_RESPONSES):
+            result = sfq.fetch_contract_attachments(contract_id)
+        for attachment in result:
+            self.assertIn(attachment['salesforce_id'], FAKE_ATTACHMENT_ID)
+
+    def test_fetch_attachment(self):
+        FAKE_BODY = base64.b64encode(b"FAKE_CONTRACT_BODY")
+        FAKE_CONTENT_TYPE = "FAKE_CONTENT_TYPE"
+        FAKE_ATTACHMENT_ID = "FAKE_ATTACHMENT_ID"
+        sfq = _generate_fake_salesforce_query_instance()
+
+        with patch.object(requests, 'get', return_value=FAKE_BODY):
+            response = sfq.fetch_attachment(FAKE_ATTACHMENT_ID, FAKE_CONTENT_TYPE)
+
+        self.assertEqual(response, FAKE_BODY)
+
+    def test_download_attachment(self):
+        client = Client()
+        attachment = AttachmentFactory()
+        kwargs = {
+            'attachment_id': attachment.id,
+        }
+        FAKE_BODY = base64.b64encode(b"FAKE_CONTRACT_BODY")
+        attachment_mock = Mock()
+        attachment_mock.content = FAKE_BODY
+
+        with patch.object(SalesforceQuery, 'fetch_attachment', return_value=attachment_mock), \
+                patch.object(SalesforceQuery, '__init__', return_value=None):
+            response = client.get(
+                reverse('download_attachment', kwargs=kwargs),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, FAKE_BODY)
+
+    def test_render_attachment_in_installment_viewg(self):
+        factory = RequestFactory()
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        attachment = AttachmentFactory()
+        attachment.contract = contract
+        attachment.save()
+        kwargs = {'contract_id': contract.id}
+        url = reverse('installments-create', kwargs=kwargs)
+        request = factory.get(url)
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = InstallmentView.as_view()(request, **kwargs)
+        content = response.render().content
+        self.assertIn(bytes(attachment.name, encoding='utf-8'), content)
 
 
 class DetailContractTest(TestCase):

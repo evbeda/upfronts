@@ -7,7 +7,7 @@ from app import views
 urlpatterns = [
     url(r'^contracts/search/', views.ContractAdd.as_view(), name='contracts-add'),
     url(r'^contracts/update/(?P<pk>[0-9]+)/$', views.ContractUpdate.as_view(), name='contracts-update'),
-    url(r'^contracts/detail/(?P<pk>[0-9]+)/$', views.DetailContractView.as_view(), name='contracts-detail'),
+    url(r'^contracts/(?P<pk>[0-9]+)/detail/$', views.DetailContractView.as_view(), name='contracts-detail'),
     url(r'^contracts/save/(?P<contract_id>\w+)/$', views.SaveCaseView.as_view(), name='contracts-save'),
     url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/$',
@@ -59,6 +59,7 @@ urlpatterns = [
     ),
     url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
+    url(r'attachment/(?P<attachment_id>.+)/$', views.download_attachment, name='download_attachment'),
     url(r'^ajax/superset-query', views.presto_query, name='superset_query'),
     url(r'^', RedirectView.as_view(url='/contracts/'), name='redirect-url'),
 ]
