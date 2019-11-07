@@ -58,7 +58,6 @@ from app.views import (
     ToggleConditionView,
 )
 from app.models import (
-    Attachment,
     Contract,
     Event,
     Installment,
