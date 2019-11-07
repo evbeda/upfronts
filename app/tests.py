@@ -58,6 +58,7 @@ from app.views import (
     ToggleConditionView,
 )
 from app.models import (
+    Attachment,
     Contract,
     Event,
     Installment,
@@ -1071,6 +1072,26 @@ class DownloadAttachment(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, FAKE_BODY)
+
+    def test_render_attachment_in_installment_viewg(self):
+        factory = RequestFactory()
+        contract_data = {
+            'organizer_account_name': 'Planner Eventos',
+            'organizer_email': 'pepe@planner.com',
+            'signed_date': '2019-09-14',
+        }
+        contract = Contract.objects.create(**contract_data)
+        attachment = AttachmentFactory()
+        attachment.contract = contract
+        attachment.save()
+        kwargs = {'contract_id': contract.id}
+        url = reverse('installments-create', kwargs=kwargs)
+        request = factory.get(url)
+        request.user = User.objects.create_user(
+            username='test', email='test@test.com', password='secret')
+        response = InstallmentView.as_view()(request, **kwargs)
+        content = response.render().content
+        self.assertIn(bytes(attachment.name, encoding='utf-8'), content)
 
 
 class DetailContractTest(TestCase):
