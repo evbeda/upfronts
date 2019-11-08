@@ -143,8 +143,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context['attachments'] = attachments
         context['contract'] = contract
         context['link_to_recoup'] = LINK_TO_RECOUPS
-        context['form'].fields['gtf'].label = 'GTF'
-        context['form'].fields['gts'].label = 'GTS'
         context['form'].fields['maximum_payment_date'].widget = DateInput(
             attrs={
                 'id': 'datepicker_maximum_payment_date',

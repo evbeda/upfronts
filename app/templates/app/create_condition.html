@@ -3,6 +3,7 @@
 {% load static %}
 {% bootstrap_css %}
 {% load staticfiles %}
+{% load humanize %}
 {% load i18n %}
 {% block head %}
     {{ block.super }}
@@ -29,11 +30,11 @@
                         <li class="m-2"> <b>Organizer: </b> {{ installment.contract.organizer_account_name }}</li>
                         <li class="m-2"> <b>Recoupable: </b> {{ installment.is_recoup }}</li>
                         <li class="m-2"> <b>Max payment date: </b> {{ installment.maximum_payment_date }}</li>
-                        <li class="m-2"> <b>Upfront projection: </b> {{ installment.upfront_projection }}</li>
-                        <li class="m-2"> <b>Recoup amount: </b> {{ installment.recoup_amount }}</li>
+                        <li class="m-2"> <b>Upfront: </b>${{ installment.upfront_projection|intcomma}}</li>
+                        <li class="m-2"> <b>Recoup amount: </b>${{ installment.recoup_amount|intcomma}}</li>
                         <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
-                        <li class="m-2"> <b>GTF: </b> {{ installment.gtf }}</li>
-                        <li class="m-2"> <b>GTS: </b> {{ installment.gts }}</li>
+                        <li class="m-2"> <b>GTF: </b>${{ installment.gtf|intcomma}}</li>
+                        <li class="m-2"> <b>GTS: </b>${{ installment.gts|intcomma}}</li>
                         <li class="m-2"> <b>Salesforce attachments: </b></li>
                         {% if attachments %}
                             {% for attachment in attachments %}
