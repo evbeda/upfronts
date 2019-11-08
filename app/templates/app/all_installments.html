@@ -32,13 +32,13 @@
                   <th scope="col-sm">Signed date</th>
                   <th scope="col-sm">Is recoup</th>
                   <th scope="col-sm">Status</th>
-                  <th scope="col-sm">Upfront projection</th>
+                  <th scope="col-sm">Upfront</th>
                   <th scope="col-sm">Recoup amount</th>
                   <th scope="col-sm">Balance</th>
                   <th scope="col-sm">Payment date</th>
                   <th scope="col-sm">Maximum payment date</th>
-                  <th scope="col-sm">Gtf</th>
-                  <th scope="col-sm">Gts</th>
+                  <th scope="col-sm">GTF</th>
+                  <th scope="col-sm">GTS</th>
                 </tr>
               </thead>
               <tbody>
@@ -46,29 +46,29 @@
                 <tr>
                   <td>{{installment.contract.organizer_account_name}}</td>
                   <td>{{installment.contract.organizer_email}}</td>
-                  <td>{{installment.contract.signed_date}}</td>
+                  <td>{{installment.contract.signed_date|date:"d/m/Y"}}</td>
                   <td>{{installment.is_recoup}}</td>
                   <td>{{installment.status}}</td>
                   {% if installment.upfront_projection %}
-                  <td>{{installment.upfront_projection|intcomma}}</td>
+                  <td>${{installment.upfront_projection|intcomma}}</td>
                   {% else %}
                   <td> - </td>
                   {% endif %}
                   {% if installment.recoup_amount %}
-                  <td>{{installment.recoup_amount|intcomma}}</td>
+                  <td>${{installment.recoup_amount|intcomma}}</td>
                   {% else %}
                   <td> - </td>
                   {% endif %}
-                  <td>{{installment.balance|intcomma}}</td>
-                  <td>{{installment.payment_date}}</td>
-                  <td>{{installment.maximum_payment_date}}</td>
+                  <td>${{installment.balance|intcomma}}</td>
+                  <td>{{installment.payment_date|date:"d/m/Y"}}</td>
+                  <td>{{installment.maximum_payment_date|date:"d/m/Y"}}</td>
                   {% if installment.gtf %}
-                  <td>{{installment.gtf|intcomma}}</td>
+                  <td>${{installment.gtf|intcomma}}</td>
                   {% else %}
                   <td> - </td>
                   {% endif %}
                   {% if installment.gts %}
-                  <td>{{installment.gts|intcomma}}</td>
+                  <td>${{installment.gts|intcomma}}</td>
                   {% else %}
                   <td> - </td>
                   {% endif %}
