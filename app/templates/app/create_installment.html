@@ -23,9 +23,9 @@
                         <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
                         <li class="m-2"> <b>Signed date: </b>{{contract.signed_date}} </li>
                         {% if contract.user_id %}
-                            <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></li>
+                            <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}" target="_blank">{{contract.user_id}}</a></li>
                         {% endif %}
-                        <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></li>
+                        <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}" target="_blank">{{contract.salesforce_case_id}}</a></li>
                         <li class="m-2"><b>Salesforce attachments: </b></li>
                         {% if attachments %}
                             {% for attachment in attachments %}
