@@ -679,6 +679,7 @@ class InstallmentTest(TestCase):
             installment_data,
         )
         InstallmentUpdate.as_view()(request, **kwargs)
+        installment.refresh_from_db()
         installment_updated = Installment.objects.first()
         self.assertEqual(installment_data['is_recoup'], installment_updated.is_recoup)
         self.assertEqual(installment_data['payment_date'], installment_updated.payment_date)
