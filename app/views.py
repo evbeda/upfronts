@@ -104,6 +104,13 @@ class ContractUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['form'].fields['signed_date'].widget = DateInput(
+            attrs={
+                'id': 'datepicker_signed_date',
+                'type': 'text',
+            },
+            format='%d/%m/%Y',
+        )
         context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
             email_organizer=context['object'].organizer_email)
         return context
@@ -440,12 +447,14 @@ class InstallmentUpdate(UpdateView):
                 'id': 'datepicker_maximum_payment_date',
                 'type': 'text',
             },
+            format='%d/%m/%Y',
         )
         context['form'].fields['payment_date'].widget = DateInput(
             attrs={
                 'id': 'datepicker_payment_date',
                 'type': 'text',
             },
+            format='%d/%m/%Y',
         )
         return context
 
