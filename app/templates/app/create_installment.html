@@ -7,7 +7,6 @@
 {% load i18n %}
 {% block head %}
     {{ block.super }}
-    <script src="{% static 'js/create_installment.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/create_installment.css' %}">
 {% endblock %}
 
@@ -87,4 +86,5 @@
                     <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
         </div>
     </div>
+    <script src="{% static 'js/create_installment.js' %}"></script>
 {% endblock content %}
