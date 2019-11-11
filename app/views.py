@@ -130,11 +130,8 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
     model = Installment
     fields = [
         "is_recoup",
-        "status",
         "upfront_projection",
         "maximum_payment_date",
-        "payment_date",
-        "recoup_amount",
         "gtf",
         "gts",
     ]
@@ -153,12 +150,6 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context['form'].fields['maximum_payment_date'].widget = DateInput(
             attrs={
                 'id': 'datepicker_maximum_payment_date',
-                'type': 'text',
-            },
-        )
-        context['form'].fields['payment_date'].widget = DateInput(
-            attrs={
-                'id': 'datepicker_payment_date',
                 'type': 'text',
             },
         )

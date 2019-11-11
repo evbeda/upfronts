@@ -4,6 +4,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from . import (
+    STATUS_COMMITED_APPROVED,
     STATUS,
 )
 
@@ -31,7 +32,7 @@ class Contract(models.Model):
 class Installment(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
     is_recoup = models.BooleanField(blank=True)
-    status = models.CharField(max_length=80, choices=STATUS, null=True, blank=True)
+    status = models.CharField(max_length=80, default=STATUS_COMMITED_APPROVED, choices=STATUS, null=True, blank=True)
     upfront_projection = models.DecimalField(
         max_digits=19,
         decimal_places=2,
