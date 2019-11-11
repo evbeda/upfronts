@@ -1,3 +1,13 @@
 .width-card{
     width: 50rem;
 }
+
+.delete-inline {
+    display: inline-block;
+    position: relative;
+    bottom: 2px;
+}
+
+.icon-padding{
+    padding-left: 10px;
+}
