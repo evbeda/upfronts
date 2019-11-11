@@ -6,7 +6,6 @@
 {% load i18n %}
 {% block head %}
     {{ block.super }}
-    <script src="{% static 'js/update_installment.js' %}"></script>
 {% endblock %}
 
 {% block title %} Update installment {% endblock title %}
@@ -43,4 +42,5 @@
             </div>
         </div>
     </form>
+    <script src="{% static 'js/update_installment.js' %}"></script>
 {% endblock content %}
