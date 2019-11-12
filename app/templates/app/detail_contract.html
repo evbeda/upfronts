@@ -17,7 +17,7 @@
                 <h1>Contract information</h1>
             </div>
             <div class="col-6 margin-link">
-                <a href="{{info_event_url}}"><b>Search for user or event id</b></a>
+                <a href="{{info_event_url}}" target="_blank"><b>Search for user or event id</b></a>
             </div>
             <div class="col margin-button-edit">
                 <a href="{% url 'contracts-update' contract.id %}" role="button" class="btn btn-outline-success"><i class="far fa-edit"></i>  Edit</a>
@@ -28,9 +28,9 @@
             <p class="lead indent"><b>Email: </b> {{contract.organizer_email}}</p>
             <p class="lead indent"><b>Signed date: </b>{{contract.signed_date}}</p>
             {% if contract.user_id %}
-                <p class="lead indent"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></p>
+                <p class="lead indent"><b>User id: </b> <a href="{{link_to_recoup}}" target="_blank">{{contract.user_id}}</a></p>
             {% endif %}
-            <p class="lead indent"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></p>
+            <p class="lead indent"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}" target="_blank">{{contract.salesforce_case_id}}</a></p>
             <p class="lead indent"><b>Salesforce attachments: </b></p>
             {% if attachments %}
                 {% for attachment in attachments %}
