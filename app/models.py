@@ -4,6 +4,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from . import (
+    STATUS_COMMITED_APPROVED,
     STATUS,
 )
 
@@ -31,13 +32,19 @@ class Contract(models.Model):
 class Installment(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
     is_recoup = models.BooleanField(blank=True)
-    status = models.CharField(max_length=80, choices=STATUS, null=True, blank=True)
-    upfront_projection = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=80, default=STATUS_COMMITED_APPROVED, choices=STATUS, null=True, blank=True)
+    upfront_projection = models.DecimalField(
+        max_digits=19,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Upfront"
+    )
     maximum_payment_date = models.DateField(null=True, blank=True)
     payment_date = models.DateField(null=True, blank=True)
     recoup_amount = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
-    gtf = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
-    gts = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True)
+    gtf = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True, verbose_name="GTF")
+    gts = models.DecimalField(max_digits=19, decimal_places=2, null=True, blank=True, verbose_name="GTS")
 
     @property
     def balance(self):

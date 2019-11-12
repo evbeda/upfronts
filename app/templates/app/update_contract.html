@@ -6,6 +6,7 @@
 {% load i18n %}
 {% block head %}
     {{ block.super }}
+    <script src="{% static 'js/update_contract.js' %}"></script>
 {% endblock %}
 
 {% block title %} Update contract {% endblock title %}
@@ -18,7 +19,7 @@
                     <h1>Update contract information</h1>
                 </div>
                 <div class="col mt-3">
-                    <a href="{{info_event_url}}"><b>Search for user or event id</b></a>
+                    <a href="{{info_event_url}}" target="_blank"><b>Search for user or event id</b></a>
                 </div>
             </div>
         </div>

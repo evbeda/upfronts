@@ -7,7 +7,6 @@
 {% load i18n %}
 {% block head %}
     {{ block.super }}
-    <script src="{% static 'js/create_installment.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/create_installment.css' %}">
 {% endblock %}
 
@@ -24,9 +23,9 @@
                         <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
                         <li class="m-2"> <b>Signed date: </b>{{contract.signed_date}} </li>
                         {% if contract.user_id %}
-                            <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}">{{contract.user_id}}</a></li>
+                            <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}" target="_blank">{{contract.user_id}}</a></li>
                         {% endif %}
-                        <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}">{{contract.salesforce_case_id}}</a></li>
+                        <li class="m-2"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}" target="_blank">{{contract.salesforce_case_id}}</a></li>
                         <li class="m-2"><b>Salesforce attachments: </b></li>
                         {% if attachments %}
                             {% for attachment in attachments %}
@@ -60,11 +59,8 @@
                     </div>
                     <div class="container">
                         {% bootstrap_field form.is_recoup layout='horizontal' %}
-                        {% bootstrap_field form.status layout='horizontal' %}
                         {% bootstrap_field form.upfront_projection layout='horizontal' %}
                         {% bootstrap_field form.maximum_payment_date layout='horizontal' %}
-                        {% bootstrap_field form.payment_date layout='horizontal' %}
-                        {% bootstrap_field form.recoup_amount layout='horizontal' %}
                         {% bootstrap_field form.gtf layout='horizontal' %}
                         {% bootstrap_field form.gts layout='horizontal' %}
                         <div class="form-group row">
@@ -90,4 +86,5 @@
                     <a href="{% url 'contracts' %}" role="button" class="btn btn-outline-secondary"><i class="far fa-arrow-alt-circle-left"></i>  Back</a>
         </div>
     </div>
+    <script src="{% static 'js/create_installment.js' %}"></script>
 {% endblock content %}

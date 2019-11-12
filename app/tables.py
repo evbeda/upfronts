@@ -112,12 +112,12 @@ class ContractsTable(tables.Table):
     def render_event_id(self, value):
         link = LINK_TO_REPORT_EVENTS.format(value)
         return format_html(
-            '<a href="{}">{}</a>'.format(link, value))
+            '<a target="_blank" href="{}">{}</a>'.format(link, value))
 
     def render_user_id(self, value):
         link = LINK_TO_RECOUPS
         return format_html(
-            '<a href="{}">{}</a>'.format(link, value))
+            '<a target="_blank" href="{}">{}</a>'.format(link, value))
 
 
 class FetchSalesForceCasesTable(tables.Table):
@@ -134,7 +134,7 @@ class FetchSalesForceCasesTable(tables.Table):
 
     def render_case_id(self, value, record):
         return format_html(
-            '''<a href="{}">{}</a>'''.format(record['link_to_salesforce_case'], value)
+            '''<a target="_blank" href="{}">{}</a>'''.format(record['link_to_salesforce_case'], value)
         )
 
     def render_save(self, value):

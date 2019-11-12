@@ -680,6 +680,7 @@ class InstallmentTest(TestCase):
             installment_data,
         )
         InstallmentUpdate.as_view()(request, **kwargs)
+        installment.refresh_from_db()
         installment_updated = Installment.objects.first()
         self.assertEqual(installment_data['is_recoup'], installment_updated.is_recoup)
         self.assertEqual(installment_data['payment_date'], installment_updated.payment_date)
@@ -1148,7 +1149,7 @@ class DeleteEventTest(TestCase):
 
 class TestUserForm(TestCase):
 
-    def test_forms(self):
+    def test_form(self):
         User.objects.create_user(
             username='test', email='test@test.com', password='Secret123')
         form_data = {

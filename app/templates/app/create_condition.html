@@ -3,6 +3,7 @@
 {% load static %}
 {% bootstrap_css %}
 {% load staticfiles %}
+{% load humanize %}
 {% load i18n %}
 {% block head %}
     {{ block.super }}
@@ -29,11 +30,11 @@
                         <li class="m-2"> <b>Organizer: </b> {{ installment.contract.organizer_account_name }}</li>
                         <li class="m-2"> <b>Recoupable: </b> {{ installment.is_recoup }}</li>
                         <li class="m-2"> <b>Max payment date: </b> {{ installment.maximum_payment_date }}</li>
-                        <li class="m-2"> <b>Upfront projection: </b> {{ installment.upfront_projection }}</li>
-                        <li class="m-2"> <b>Recoup amount: </b> {{ installment.recoup_amount }}</li>
+                        <li class="m-2"> <b>Upfront: </b>${{ installment.upfront_projection|intcomma}}</li>
+                        <li class="m-2"> <b>Recoup amount: </b>${{ installment.recoup_amount|intcomma}}</li>
                         <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
-                        <li class="m-2"> <b>GTF: </b> {{ installment.gtf }}</li>
-                        <li class="m-2"> <b>GTS: </b> {{ installment.gts }}</li>
+                        <li class="m-2"> <b>GTF: </b>${{ installment.gtf|intcomma}}</li>
+                        <li class="m-2"> <b>GTS: </b>${{ installment.gts|intcomma}}</li>
                         <li class="m-2"> <b>Salesforce attachments: </b></li>
                         {% if attachments %}
                             {% for attachment in attachments %}
@@ -66,63 +67,48 @@
               <tr>
                 <th>Condition name</th>
                 <th>Date modified</th>
-                <th>Actions</th>
-                <th>Preview</th>
-                <th>Download</th>
-                <th>Upload a File (.pdf, .xls, .png, .jpeg)</th>
+                <th>File Actions</th>
+                <th></th>
                 <th>Action</th>
               </tr>
               {% for object in object_list %}
               <tr>
                 <td>{{ object.condition_name }}</td>
                 <td>{% if object.done %}{{ object.done }} {% endif %}</td>
-                <td>
-                  <form action="{% url 'toggle-condition' installment.contract_id installment.id object.id %}" method="POST">
-                      {% csrf_token %}
-                      <button class="btn btn-outline-primary" type="submit">
-                        {% if object.done %} 
-                          Undo
-                        {% else %} 
-                          Mark as Done
-                        {% endif %}
-                      </button>
-                  </form> 
-                </td>
                 {% if object.upload_file %}
                   <td>
-                    <a target="_blank" href="http://docs.google.com/gview?url={{ object.upload_file.url }}"><i class="fas fa-search"></i></a>
-                  </td>
-                  <td>
-                    <a href="{{ object.upload_file.url }}"><i class="fas fa-download"></i></a>
+                      <a target="_blank" href="http://docs.google.com/gview?url={{ object.upload_file.url }}"><i class="fas fa-search"></i></a>
+                      <a class="icon-padding"  href="{{ object.upload_file.url }}"><i class="fas fa-download"></i></a>
+                      <form class="delete-file-form delete-inline" layout="horizontal" action="{% url 'delete-uploaded-file' installment.contract_id installment.id object.id %}" method="POST">
+                        {% csrf_token %}
+                        <button class="btn btn-link" type="submit"><i class="far fa-trash-alt"></i></button>
+                      </form>
                   </td>
                   <td>
                     {{object.upload_file}}
                   </td>
-                  <td>
-                    <form class="delete-file-form" action="{% url 'delete-uploaded-file' installment.contract_id installment.id object.id %}" method="POST">
-                      {% csrf_token %}
-                      <button class="btn btn-link" type="submit">
-                        <i class="far fa-trash-alt"></i>
-                      </button>
-                    </form>
-                  </td>
                   {% else %}
                   <td>
-                    <a><i class="fas fa-search"></i></a>
-                  </td>
-                  <td>
-                    <a><i class="fas fa-download"></i></a>
-                  </td>
                   <form enctype="multipart/form-data" method="POST" action="{% url 'condition_backup_proof' installment.contract_id installment.id object.id %}">
                     {% csrf_token %}
-                    <td>
                       <input type="file" name="backup_file" accept="application/pdf, application/vnd.ms-excel, image/png, image/jpeg, image/jpg">
-                    </td>
-                    <td>
-                      <input type="submit" value="Upload"/>
+                      <td>
+                        <input type="submit" value="Upload"/>
+                      </td>
                     </td>
                     </form>
                   {% endif %}
+                <td>
+                  <form action="{% url 'toggle-condition' installment.contract_id installment.id object.id %}" method="POST">
+                      {% csrf_token %}
+                        {% if object.done %} 
+                          <button class="btn btn-outline-primary" type="submit">Undo
+                        {% else %} 
+                          <button class="btn btn-primary" type="submit">Done
+                        {% endif %}
+                      </button>
+                  </form> 
+                </td>
               </tr>
               {% endfor %}
             </table>

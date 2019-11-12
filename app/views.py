@@ -106,6 +106,13 @@ class ContractUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['form'].fields['signed_date'].widget = DateInput(
+            attrs={
+                'id': 'datepicker_signed_date',
+                'type': 'text',
+            },
+            format='%d/%m/%Y',
+        )
         context['info_event_url'] = LINK_TO_SEARCH_EVENT_OR_USER.format(
             email_organizer=context['object'].organizer_email)
         return context
@@ -125,11 +132,8 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
     model = Installment
     fields = [
         "is_recoup",
-        "status",
         "upfront_projection",
         "maximum_payment_date",
-        "payment_date",
-        "recoup_amount",
         "gtf",
         "gts",
     ]
@@ -145,17 +149,9 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
         context['attachments'] = attachments
         context['contract'] = contract
         context['link_to_recoup'] = LINK_TO_RECOUPS
-        context['form'].fields['gtf'].label = 'GTF'
-        context['form'].fields['gts'].label = 'GTS'
         context['form'].fields['maximum_payment_date'].widget = DateInput(
             attrs={
                 'id': 'datepicker_maximum_payment_date',
-                'type': 'text',
-            },
-        )
-        context['form'].fields['payment_date'].widget = DateInput(
-            attrs={
-                'id': 'datepicker_payment_date',
                 'type': 'text',
             },
         )
@@ -453,12 +449,14 @@ class InstallmentUpdate(UpdateView):
                 'id': 'datepicker_maximum_payment_date',
                 'type': 'text',
             },
+            format='%d/%m/%Y',
         )
         context['form'].fields['payment_date'].widget = DateInput(
             attrs={
                 'id': 'datepicker_payment_date',
                 'type': 'text',
             },
+            format='%d/%m/%Y',
         )
         return context
 
