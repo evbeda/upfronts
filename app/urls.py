@@ -53,9 +53,15 @@ urlpatterns = [
     ),
     url(
         r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
-        '/conditions/(?P<condition_id>[0-9]+)/backup_proof/$',
+        '/conditions/(?P<condition_id>[0-9]+)/backup-proof/$',
         views.ConditionBackupProofView.as_view(),
         name='condition_backup_proof',
+    ),
+    url(
+        r'^contracts/(?P<contract_id>[0-9]+)/installments/(?P<installment_id>[0-9]+)'
+        '/conditions/(?P<condition_id>[0-9]+)/delete-condition/$',
+        views.DeleteInstallmentCondition.as_view(),
+        name='installment-condition-delete',
     ),
     url(r'^contracts/installments/$', views.AllInstallmentsView.as_view(), name='all-installments'),
     url(r'^contracts/', views.ContractsTableView.as_view(), name='contracts'),
