@@ -145,6 +145,12 @@ class InstallmentView(LoginRequiredMixin, SingleTableMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         contract = Contract.objects.filter(id=self.kwargs['contract_id']).get()
+        events = []
+        query_events = contract.events.all()
+        for event in query_events:
+            event.link_to_event = LINK_TO_REPORT_EVENTS.format(event.event_id)
+            events.append(event)
+        context['events'] = events
         attachments = Attachment.objects.filter(contract_id=self.kwargs['contract_id'])
         context['attachments'] = attachments
         context['contract'] = contract

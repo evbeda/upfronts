@@ -29,6 +29,8 @@
             <p class="lead indent"><b>Signed date: </b>{{contract.signed_date}}</p>
             {% if contract.user_id %}
                 <p class="lead indent"><b>User id: </b> <a href="{{link_to_recoup}}" target="_blank">{{contract.user_id}}</a></p>
+            {% else %}
+                <p class="lead indent"><b>User id: </b>There is no user id assigned, add one <a href="{% url 'contracts-update' contract.id %}">here</a></p>
             {% endif %}
             <p class="lead indent"><b>Salesforce case: </b> <a href="{{contract.link_to_salesforce_case}}" target="_blank">{{contract.salesforce_case_id}}</a></p>
             <p class="lead indent"><b>Salesforce attachments: </b></p>
@@ -59,7 +61,7 @@
                     {% endfor %}
                     </div>
             {% else %}
-                <p class="lead indent"><i>There are no events for this contract yet.</i></p>
+                <p class="lead indent"><b>Events: </b>There are no events assigned, add one below.</p>
             {% endif%}
             <div class="lead indent-form">
                 <form action="{% url 'events-create' contract.id %}" method="POST">{% csrf_token %}
