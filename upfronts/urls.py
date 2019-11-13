@@ -4,13 +4,14 @@ from django.conf.urls import (
 )
 from django.contrib import admin
 from django.contrib.auth.views import (
-    LoginView,
     LogoutView,
 )
 
+from app.views import Login
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^accounts/login/$', LoginView.as_view(template_name='registration/login.html'), name='login'),
+    url(r'^accounts/login/$', Login.as_view(), name='login'),
     url(r'^accounts/logout/$', LogoutView.as_view(), name='logout'),
     url('', include('social_django.urls', namespace='social')),
     url(r'', include('app.urls')),
