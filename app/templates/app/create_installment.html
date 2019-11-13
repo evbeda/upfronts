@@ -28,9 +28,9 @@
                         <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
                         <li class="m-2"> <b>Signed date: </b>{{contract.signed_date}} </li>
                         {% if contract.user_id %}
-                            <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}" target="_blank">{{contract.user_id}} </a> <i> (See GTS here.)</i></li>
+                            <li class="m-2"><b>User id: </b> <a href="{{link_to_recoup}}" target="_blank">{{contract.user_id}}</a> <i>(See GTS here.)</i></li>
                         {% else %}
-                            <li class="m-2"><b>User id: </b>There is no user id assigned, add one <a href="{% url 'contracts-update' contract.id %}" target="_blank">here</a></li>
+                            <li class="m-2"><b>User id: </b>There is no user id assigned, add one <a href="{% url 'contracts-update' contract.id %}">here</a></li>
                         {% endif %}
                         <li class="m-2"><b>Events: </b></li>
                         {% if events %}
