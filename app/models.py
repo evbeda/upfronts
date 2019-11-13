@@ -25,6 +25,10 @@ class Contract(models.Model):
         return self
 
     @property
+    def edit(self):
+        return self
+
+    @property
     def installments(self):
         return self
 
