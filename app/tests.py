@@ -39,6 +39,7 @@ from app import (
     STATUS,
     SUPERSET_QUERY_DATE_FORMAT,
 )
+from app.forms import CustomAuthenticationForm
 from app.views import (
     AllInstallmentsView,
     ConditionBackupProofView,
@@ -1144,3 +1145,27 @@ class DeleteEventTest(TestCase):
         DeleteEvent.as_view()(request, **kwargs)
         event_query = Event.objects.filter(id=event.id)
         self.assertEqual(event_query.count(), 0)
+
+
+class TestUserForm(TestCase):
+
+    def test_form(self):
+        User.objects.create_user(
+            username='test', email='test@test.com', password='Secret123')
+        form_data = {
+            'username': 'test',
+            'password': 'Secret123',
+        }
+        form = CustomAuthenticationForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_form(self):
+        Error = 'Please enter a correct username and password. Note that both fields may be case-sensitive.'
+        User.objects.create_user(
+            username='test', email='test@test.com', password='Secret123')
+        form_data = {
+            'username': 'test',
+            'password': 'secret123',
+        }
+        form = CustomAuthenticationForm(data=form_data)
+        self.assertEqual(form.errors['__all__'][0], Error)
