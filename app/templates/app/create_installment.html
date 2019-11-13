@@ -17,7 +17,12 @@
         <div class="row justify-content-center m-3">
                 <div class="card width-card-info-installment">
                   <div class="card-body">
-                    <h5 class="card-title">Contract</h5>
+                    <div class="row">
+                        <div class="col col-auto">
+                            <h5 class="card-title">Contract</h5>
+                        </div>
+                            <a href={% url 'contracts-detail' contract.id %}><i class="fas fa-info-circle fa-lg"></i></a>
+                    </div>
                     <p class="card-text">
                         <li class="m-2"> <b>Account name: </b> {{contract.organizer_account_name}} </li>
                         <li class="m-2"> <b>Email: </b> {{contract.organizer_email}} </li>
