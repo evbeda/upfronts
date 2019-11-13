@@ -81,6 +81,7 @@ class InstallmentsTable(tables.Table):
 class ContractsTable(tables.Table):
     installments = tables.Column(orderable=False)
     details = tables.Column(orderable=False)
+    edit = tables.Column(orderable=False)
 
     class Meta:
         model = Contract
@@ -95,6 +96,13 @@ class ContractsTable(tables.Table):
             'organizer_email',
             'user_id',
             'signed_date',
+        )
+
+    def render_edit(self, value):
+        return format_html(
+            '<a href="{}"><i class="far fa-edit"></i></a>'.format(
+                reverse('contracts-update', args=(value.id, ))
+            )
         )
 
     def render_details(self, value):
