@@ -299,6 +299,7 @@ class DeleteInstallmentCondition(View):
         installment_id = self.kwargs.get('installment_id')
         condition_id = self.kwargs.get('condition_id')
         condition = InstallmentCondition.objects.get(pk=condition_id)
+        condition.delete_upload_file()
         condition.delete()
         return redirect('conditions', contract_id, installment_id)
 
