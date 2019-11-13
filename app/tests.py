@@ -272,7 +272,10 @@ class InstallmentConditionTest(TestCase):
             'installment_id': condition.installment.id,
             'condition_id': condition.id,
         }
-        request = factory.post(reverse('installment-condition-delete', args=[condition.installment.contract.id, condition.installment.id, condition.id]))
+        request = factory.post(reverse(
+            'installment-condition-delete',
+            args=[condition.installment.contract.id, condition.installment.id, condition.id]),
+        )
         DeleteInstallmentCondition.as_view()(request, **kwargs)
         condition_query = InstallmentCondition.objects.filter(id=condition.id)
         self.assertEqual(condition_query.count(), 0)
