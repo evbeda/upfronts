@@ -49,6 +49,7 @@ from app.views import (
     ContractsTableView,
     CreateEvent,
     DeleteEvent,
+    DeleteInstallmentCondition,
     DeleteUploadedFileCondition,
     DetailContractView,
     InstallmentDelete,
@@ -262,6 +263,22 @@ class InstallmentConditionTest(TestCase):
         ToggleConditionView.as_view()(request, **kwargs)
         installment_condition.refresh_from_db()
         self.assertNotEqual(installment_condition.done, None)
+
+    def test_delete_condition_view(self):
+        factory = RequestFactory()
+        condition = InstallmentConditionFactory()
+        kwargs = {
+            'contract_id': condition.installment.contract.id,
+            'installment_id': condition.installment.id,
+            'condition_id': condition.id,
+        }
+        request = factory.post(reverse(
+            'installment-condition-delete',
+            args=[condition.installment.contract.id, condition.installment.id, condition.id]),
+        )
+        DeleteInstallmentCondition.as_view()(request, **kwargs)
+        condition_query = InstallmentCondition.objects.filter(id=condition.id)
+        self.assertEqual(condition_query.count(), 0)
 
 
 class RedirectTest(TestCase):
