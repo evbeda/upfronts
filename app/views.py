@@ -5,6 +5,7 @@ import operator
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import DateInput
@@ -47,6 +48,7 @@ from app import (
     SUPERSET_DEFAULT_CURRENCY,
     SUPERSET_QUERY_DATE_FORMAT,
 )
+from app.forms import CustomAuthenticationForm
 from app.models import (
     Attachment,
     Contract,
@@ -540,3 +542,10 @@ class DeleteUploadedFileCondition(View):
         condition = InstallmentCondition.objects.get(pk=condition_id)
         condition.delete_upload_file()
         return redirect('conditions', contract_id, installment_id)
+
+
+class Login (LoginView):
+    authentication_form = CustomAuthenticationForm
+    form_class = CustomAuthenticationForm
+    template_name = 'registration/login.html'
+    success_url = reverse_lazy('contracts')
