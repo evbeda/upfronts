@@ -29,12 +29,12 @@
                       <p class="card-text">
                         <li class="m-2"> <b>Organizer: </b> {{ installment.contract.organizer_account_name }}</li>
                         <li class="m-2"> <b>Recoupable: </b> {{ installment.is_recoup }}</li>
-                        <li class="m-2"> <b>Max payment date: </b> {{ installment.maximum_payment_date }}</li>
-                        <li class="m-2"> <b>Upfront: </b>${{ installment.upfront_projection|intcomma}}</li>
-                        <li class="m-2"> <b>Recoup amount: </b>${{ installment.recoup_amount|intcomma}}</li>
+                        <li class="m-2"> <b>Max payment date: </b>{% if installment.maximum_payment_date %} {{ installment.maximum_payment_date }} {% else %} - {% endif %}</li>
+                        <li class="m-2"> <b>Upfront: </b>{% if installment.upfront_projection %} ${{ installment.upfront_projection|intcomma }} {% else %} - {% endif %}</li>
+                        <li class="m-2"> <b>Recoup amount: </b>{% if installment.recoup_amount %} ${{ installment.recoup_amount|intcomma }} {% else %} - {% endif %}</li>
                         <li class="m-2"> <b>Status: </b> {{ installment.status }}</li>
-                        <li class="m-2"> <b>GTF: </b>${{ installment.gtf|intcomma}}</li>
-                        <li class="m-2"> <b>GTS: </b>${{ installment.gts|intcomma}}</li>
+                        <li class="m-2"> <b>GTF: </b>{% if installment.gtf %} ${{ installment.gtf|intcomma }} {% else %} - {% endif %}</li>
+                        <li class="m-2"> <b>GTS: </b>{% if installment.gts %} ${{ installment.gts|intcomma }} {% else %} - {% endif %}</li>
                         <li class="m-2"> <b>Salesforce attachments: </b></li>
                         {% if attachments %}
                             {% for attachment in attachments %}
