@@ -1,4 +1,3 @@
-import os
 from settings import get_env_variable
 from settings.base import *  # noqa
 
